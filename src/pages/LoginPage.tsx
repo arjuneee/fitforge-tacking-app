@@ -31,38 +31,38 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-dvh flex items-center justify-center relative overflow-hidden safe-top safe-bottom">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-black">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 via-black to-gold-900/10" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute top-0 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-gold-500/10 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-0 right-1/4 w-56 md:w-80 h-56 md:h-80 bg-violet-500/10 rounded-full blur-3xl animate-pulse-slow" />
         {/* Grid Pattern */}
         <div 
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `linear-gradient(rgba(212,175,55,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.3) 1px, transparent 1px)`,
-            backgroundSize: '50px 50px'
+            backgroundSize: '40px 40px'
           }}
         />
       </div>
 
-      <div className="w-full max-w-md px-6 relative z-10">
+      <div className="w-full max-w-md px-5 md:px-6 relative z-10 py-8">
         {/* Logo/Title */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-gold-500 to-gold-600 shadow-lg shadow-gold-500/30 animate-float">
-            <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <div className="text-center mb-8 md:mb-10 animate-slide-up">
+          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 mb-3 md:mb-4 rounded-2xl bg-gradient-to-br from-gold-500 to-gold-600 shadow-lg shadow-gold-500/30 animate-float">
+            <svg className="w-7 h-7 md:w-8 md:h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
             </svg>
           </div>
-          <h1 className="text-4xl font-display font-bold text-gradient tracking-wider">FITFORGE</h1>
-          <p className="text-gray-500 mt-2 text-sm tracking-wide">FORGE YOUR LEGACY</p>
+          <h1 className="text-3xl md:text-4xl font-display font-bold text-gradient tracking-wider">FITFORGE</h1>
+          <p className="text-gray-500 mt-2 text-xs md:text-sm tracking-wide">FORGE YOUR LEGACY</p>
         </div>
 
         {/* Login Card */}
-        <div className="glass-card rounded-3xl p-8 glow-border">
-          <h2 className="text-2xl font-semibold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-400 text-sm mb-8">Sign in to continue your journey</p>
+        <div className="glass-card rounded-2xl md:rounded-3xl p-6 md:p-8 glow-border animate-slide-up stagger-1">
+          <h2 className="text-xl md:text-2xl font-semibold text-white mb-1 md:mb-2">Welcome Back</h2>
+          <p className="text-gray-400 text-sm mb-6 md:mb-8">Sign in to continue your journey</p>
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-3">
@@ -73,25 +73,25 @@ export function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+              <label htmlFor="email" className="block text-[10px] md:text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
                 Email Address
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                </span>
+                </div>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="input-field pl-12"
+                  className="input-field input-with-icon"
                   placeholder="you@example.com"
                 />
               </div>
@@ -99,22 +99,22 @@ export function LoginPage() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+              <label htmlFor="password" className="block text-[10px] md:text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
                 Password
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
-                </span>
+                </div>
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="input-field pl-12"
+                  className="input-field input-with-icon"
                   placeholder="••••••••"
                 />
               </div>
@@ -151,7 +151,7 @@ export function LoginPage() {
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 my-8">
+          <div className="flex items-center gap-4 my-6 md:my-8">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
             <span className="text-xs text-gray-500 uppercase tracking-wider">or</span>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
@@ -169,7 +169,7 @@ export function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-600 text-xs mt-8">
+        <p className="text-center text-gray-600 text-xs mt-6 md:mt-8">
           By continuing, you agree to our Terms of Service
         </p>
       </div>

@@ -143,161 +143,142 @@ export const SetLogger = forwardRef<SetLoggerRef, SetLoggerProps>(({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Weight Control */}
+    <div className="space-y-5 md:space-y-6">
+      {/* Weight Control - Large touch targets */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-3">Weight (kg)</label>
-        <div className="flex items-center gap-4">
+        <label className="block text-sm font-medium text-gray-300 mb-2 md:mb-3">Weight (kg)</label>
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={() => adjustWeight(-2.5)}
-            className="w-16 h-16 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-500/30 text-2xl font-bold text-white transition-all active:scale-95"
+            className="touch-number-btn"
           >
             −
           </button>
-          <div className="flex-1 text-center">
-            <div className={`text-5xl font-bold mb-1 transition-colors ${
+          <div className="flex-1 text-center py-2">
+            <div className={`text-4xl md:text-5xl font-bold mb-0.5 transition-colors ${
               exceedsWeight ? "text-green-400" : "text-white"
             }`}>
               {weight.toFixed(1)}
               {exceedsWeight && (
-                <span className="ml-2 text-2xl">↑</span>
+                <span className="ml-1 text-xl md:text-2xl">↑</span>
               )}
             </div>
-            <div className="text-sm text-gray-400">kg</div>
+            <div className="text-xs md:text-sm text-gray-400">kg</div>
             {lastPreviousSet && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">
                 Last: {lastPreviousSet.weight_kg}kg
               </div>
             )}
           </div>
           <button
             onClick={() => adjustWeight(2.5)}
-            className="w-16 h-16 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-500/30 text-2xl font-bold text-white transition-all active:scale-95"
+            className="touch-number-btn"
           >
             +
           </button>
         </div>
-        <div className="flex gap-2 mt-2 justify-center">
-          <button
-            onClick={() => adjustWeight(-5)}
-            className="px-3 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-gray-400"
-          >
-            -5kg
-          </button>
-          <button
-            onClick={() => adjustWeight(-1)}
-            className="px-3 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-gray-400"
-          >
-            -1kg
-          </button>
-          <button
-            onClick={() => adjustWeight(1)}
-            className="px-3 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-gray-400"
-          >
-            +1kg
-          </button>
-          <button
-            onClick={() => adjustWeight(5)}
-            className="px-3 py-1 text-xs bg-white/5 hover:bg-white/10 rounded text-gray-400"
-          >
-            +5kg
-          </button>
+        {/* Quick adjust buttons */}
+        <div className="flex gap-1.5 md:gap-2 mt-2 md:mt-3 justify-center">
+          {[-5, -1, 1, 5].map((delta) => (
+            <button
+              key={delta}
+              onClick={() => adjustWeight(delta)}
+              className="flex-1 max-w-[60px] py-2 text-xs bg-white/5 active:bg-gold-500/20 rounded-lg text-gray-400 active:text-gold-500 transition-colors"
+            >
+              {delta > 0 ? '+' : ''}{delta}kg
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Reps Control */}
+      {/* Reps Control - Large touch targets */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-3">Reps</label>
-        <div className="flex items-center gap-4">
+        <label className="block text-sm font-medium text-gray-300 mb-2 md:mb-3">Reps</label>
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={() => adjustReps(-1)}
-            className="w-16 h-16 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-500/30 text-2xl font-bold text-white transition-all active:scale-95"
+            className="touch-number-btn"
           >
             −
           </button>
-          <div className="flex-1 text-center">
-            <div className={`text-5xl font-bold mb-1 transition-colors ${
+          <div className="flex-1 text-center py-2">
+            <div className={`text-4xl md:text-5xl font-bold mb-0.5 transition-colors ${
               exceedsReps ? "text-green-400" : "text-white"
             }`}>
               {reps}
               {exceedsReps && (
-                <span className="ml-2 text-2xl">↑</span>
+                <span className="ml-1 text-xl md:text-2xl">↑</span>
               )}
             </div>
-            <div className="text-sm text-gray-400">reps</div>
+            <div className="text-xs md:text-sm text-gray-400">reps</div>
             {lastPreviousSet && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">
                 Last: {lastPreviousSet.reps}
               </div>
             )}
           </div>
           <button
             onClick={() => adjustReps(1)}
-            className="w-16 h-16 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-500/30 text-2xl font-bold text-white transition-all active:scale-95"
+            className="touch-number-btn"
           >
             +
           </button>
         </div>
       </div>
 
-      {/* RPE Selector */}
+      {/* RPE Selector - Touch friendly */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-3">
-          RPE {rpe && `(${RPE_DESCRIPTIONS[rpe]})`}
+        <label className="block text-sm font-medium text-gray-300 mb-2 md:mb-3">
+          RPE {rpe && <span className="text-gold-500 font-normal">({RPE_DESCRIPTIONS[rpe]})</span>}
         </label>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-5 gap-1.5 md:gap-2">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
             <button
               key={value}
               onClick={() => setRpe(value)}
-              className={`py-3 rounded-lg font-semibold transition-all ${
+              className={`py-2.5 md:py-3 rounded-xl font-semibold transition-all active:scale-95 ${
                 rpe === value
-                  ? "bg-gold-500 text-black"
-                  : "bg-white/5 text-white hover:bg-white/10"
+                  ? "bg-gold-500 text-black shadow-lg shadow-gold-500/30"
+                  : "bg-white/5 text-white active:bg-white/10"
               }`}
             >
               {value}
             </button>
           ))}
         </div>
-        {rpe && (
-          <p className="text-xs text-gray-400 mt-2 text-center">
-            {RPE_DESCRIPTIONS[rpe]}
-          </p>
-        )}
       </div>
 
-      {/* Set Flags */}
-      <div className="flex gap-4">
+      {/* Set Flags - Larger touch targets */}
+      <div className="flex gap-2 md:gap-4">
         <button
           onClick={() => setIsWarmup(!isWarmup)}
-          className={`flex-1 py-3 rounded-lg font-medium transition-all ${
+          className={`flex-1 py-2.5 md:py-3 rounded-xl font-medium transition-all text-sm active:scale-95 ${
             isWarmup
-              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-              : "bg-white/5 text-gray-400 border border-white/10 hover:border-blue-500/30"
+              ? "bg-blue-500/20 text-blue-400 border-2 border-blue-500/40"
+              : "bg-white/5 text-gray-400 border border-white/10"
           }`}
         >
-          Warmup
+          🔥 Warmup
         </button>
         <button
           onClick={() => setIsFailure(!isFailure)}
-          className={`flex-1 py-3 rounded-lg font-medium transition-all ${
+          className={`flex-1 py-2.5 md:py-3 rounded-xl font-medium transition-all text-sm active:scale-95 ${
             isFailure
-              ? "bg-red-500/20 text-red-400 border border-red-500/30"
-              : "bg-white/5 text-gray-400 border border-white/10 hover:border-red-500/30"
+              ? "bg-red-500/20 text-red-400 border-2 border-red-500/40"
+              : "bg-white/5 text-gray-400 border border-white/10"
           }`}
         >
-          Failure
+          💪 Failure
         </button>
         <button
           onClick={() => setIsDropset(!isDropset)}
-          className={`flex-1 py-3 rounded-lg font-medium transition-all ${
+          className={`flex-1 py-2.5 md:py-3 rounded-xl font-medium transition-all text-sm active:scale-95 ${
             isDropset
-              ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-              : "bg-white/5 text-gray-400 border border-white/10 hover:border-purple-500/30"
+              ? "bg-purple-500/20 text-purple-400 border-2 border-purple-500/40"
+              : "bg-white/5 text-gray-400 border border-white/10"
           }`}
         >
-          Dropset
+          ⬇️ Drop
         </button>
       </div>
 
@@ -305,51 +286,56 @@ export const SetLogger = forwardRef<SetLoggerRef, SetLoggerProps>(({
       {previousSets.length > 0 && (
         <button
           onClick={() => handleQuickFill()}
-          className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold-500/30 text-white rounded-lg transition-all text-sm"
+          className="w-full py-2.5 bg-white/5 active:bg-gold-500/10 border border-white/10 text-white rounded-xl transition-all text-sm"
         >
-          Quick Fill from Last Session
+          ⚡ Quick Fill from Last Session
         </button>
       )}
 
       {/* Progress Indicator */}
       {exceedsVolume && (
-        <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm text-center">
-          🎉 You're exceeding your last session's volume!
+        <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm text-center animate-slide-up">
+          🎉 Exceeding last session's volume!
         </div>
       )}
 
-      {/* Notes */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Notes (optional)</label>
+      {/* Notes - Collapsed by default on mobile */}
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-400 py-2">
+          <span>📝 Add Notes (optional)</span>
+          <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="input-field"
+          className="input-field mt-2"
           placeholder="Form cues, tips..."
         />
-      </div>
+      </details>
 
       {/* Error Message */}
       {error && (
-        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
+        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm text-center animate-slide-up">
           {error}
         </div>
       )}
 
-      {/* Log Set Button */}
+      {/* Log Set Button - Extra large for mobile */}
       <button
         onClick={handleLogSet}
         disabled={weight <= 0 || reps <= 0}
-        className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
+        className={`w-full py-4 md:py-5 rounded-2xl font-bold text-lg transition-all active:scale-[0.98] ${
           justLogged
-            ? "bg-green-500 text-white"
+            ? "bg-green-500 text-white shadow-lg shadow-green-500/30"
             : weight <= 0 || reps <= 0
             ? "bg-gray-800 text-gray-500 cursor-not-allowed"
             : "btn-primary"
         }`}
       >
-        {justLogged ? "✓ Set Logged!" : weight <= 0 || reps <= 0 ? "Set Weight & Reps" : "Log Set"}
+        {justLogged ? "✓ Set Logged!" : weight <= 0 || reps <= 0 ? "Set Weight & Reps" : "LOG SET"}
       </button>
     </div>
   );

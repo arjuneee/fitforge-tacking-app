@@ -225,37 +225,36 @@ export function ActiveWorkoutPage() {
   );
 
   return (
-    <div className="min-h-dvh bg-black">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-black/95 backdrop-blur-sm border-b border-white/10 px-4 py-4">
+    <div className="min-h-dvh bg-black pb-24 md:pb-6">
+      {/* Header - Mobile Optimized */}
+      <div className="sticky top-0 z-10 glass-card border-b border-white/10 px-3 md:px-4 py-3 md:py-4 safe-top">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-white">{session.workout_name}</h1>
-            <p className="text-sm text-gray-400">
-              {activeExerciseIndex + 1} of {session.exercises.length} exercises
-            </p>
-            {!isOnline && (
-              <p className="text-xs text-yellow-500 mt-1">Offline Mode</p>
-            )}
-            {pendingCount > 0 && (
-              <p className="text-xs text-blue-400 mt-1">
-                {pendingCount} item{pendingCount > 1 ? "s" : ""} pending sync
-              </p>
-            )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg md:text-xl font-bold text-white truncate">{session.workout_name}</h1>
+            <div className="flex items-center gap-2 text-xs md:text-sm text-gray-400">
+              <span>{activeExerciseIndex + 1}/{session.exercises.length}</span>
+              {!isOnline && (
+                <span className="text-yellow-500">• Offline</span>
+              )}
+              {pendingCount > 0 && (
+                <span className="text-blue-400">• {pendingCount} pending</span>
+              )}
+            </div>
           </div>
           <button
             onClick={handleFinishWorkout}
-            className="btn-primary px-4 py-2 text-sm"
+            className="btn-primary px-3 md:px-4 py-2 text-sm whitespace-nowrap ml-3"
           >
-            Finish Workout
+            <span className="hidden md:inline">Finish Workout</span>
+            <span className="md:hidden">Finish</span>
           </button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Exercise List */}
-        <div className="mb-6">
-          <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 md:py-6">
+        {/* Exercise Pills - Horizontal Scroll */}
+        <div className="mb-4 md:mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-hide">
             {session.exercises.map((ex, idx) => {
               const isSkipped = skippedExercises.has(ex.id);
               const setsCount = loggedSets.filter((s) => s.exercise_id === ex.exercise.id).length;
@@ -265,25 +264,26 @@ export function ActiveWorkoutPage() {
                 <button
                   key={ex.id}
                   onClick={() => setActiveExerciseIndex(idx)}
-                  className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
+                  className={`flex-shrink-0 px-3 md:px-4 py-2 rounded-xl text-sm whitespace-nowrap transition-all active:scale-95 ${
                     isActive
-                      ? "bg-gold-500/20 text-gold-500 border border-gold-500/30"
+                      ? "bg-gold-500/20 text-gold-500 border-2 border-gold-500/40 font-medium"
                       : isSkipped
                       ? "bg-gray-800/50 text-gray-500 border border-gray-700"
-                      : "bg-white/5 text-white border border-white/10 hover:border-gold-500/30"
+                      : "bg-white/5 text-white border border-white/10"
                   }`}
                 >
                   {ex.exercise.name}
                   {setsCount > 0 && (
-                    <span className="ml-2 text-xs">({setsCount})</span>
+                    <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${isActive ? 'bg-gold-500/30' : 'bg-white/10'}`}>
+                      {setsCount}
+                    </span>
                   )}
-                  {isSkipped && <span className="ml-2 text-xs">Skipped</span>}
                 </button>
               );
             })}
             <button
               onClick={() => setShowExerciseSelector(true)}
-              className="px-4 py-2 rounded-lg text-sm bg-white/5 text-white border border-white/10 hover:border-gold-500/30"
+              className="flex-shrink-0 px-3 md:px-4 py-2 rounded-xl text-sm bg-gold-500/10 text-gold-500 border border-gold-500/20 active:scale-95"
             >
               + Add
             </button>
@@ -292,27 +292,23 @@ export function ActiveWorkoutPage() {
 
         {/* Current Exercise */}
         {currentExercise && !skippedExercises.has(currentExercise.id) && (
-          <div className="glass-card rounded-3xl p-6 mb-6 glow-border">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
+          <div className="glass-card rounded-2xl md:rounded-3xl p-4 md:p-6 mb-4 md:mb-6 glow-border">
+            <div className="flex justify-between items-start mb-4 md:mb-6">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-1 md:mb-2 truncate">
                   {currentExercise.exercise.name}
                 </h2>
-                <div className="flex gap-4 text-sm text-gray-400">
-                  <span>{currentExercise.exercise.muscle_group?.name}</span>
-                  <span>•</span>
-                  <span className="capitalize">{currentExercise.exercise.equipment}</span>
+                <div className="flex flex-wrap gap-2 text-xs md:text-sm text-gray-400">
+                  <span className="bg-white/5 px-2 py-0.5 rounded-full">{currentExercise.exercise.muscle_group?.name}</span>
+                  <span className="bg-white/5 px-2 py-0.5 rounded-full capitalize">{currentExercise.exercise.equipment}</span>
                   {currentExercise.exercise.is_compound && (
-                    <>
-                      <span>•</span>
-                      <span className="text-gold-500">Compound</span>
-                    </>
+                    <span className="bg-gold-500/10 text-gold-500 px-2 py-0.5 rounded-full">Compound</span>
                   )}
                 </div>
               </div>
               <button
                 onClick={() => handleSkipExercise(currentExercise.id)}
-                className="px-3 py-1.5 bg-gray-800/50 hover:bg-gray-800 text-gray-400 rounded-lg text-sm"
+                className="ml-2 px-3 py-1.5 bg-gray-800/50 active:bg-gray-800 text-gray-400 rounded-lg text-sm whitespace-nowrap"
               >
                 Skip
               </button>
