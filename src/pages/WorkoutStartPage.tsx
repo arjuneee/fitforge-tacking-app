@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { programsApi, sessionsApi, type Program, type Workout } from "../services/api";
 import { PageLayout } from "../components/PageLayout";
+import { LastSessionSummary } from "../components/LastSessionSummary";
 
 interface ProgramWithWorkouts extends Program {
   workouts?: Workout[];
@@ -96,30 +97,33 @@ export function WorkoutStartPage() {
           <p className="text-gray-400 text-[10px] md:text-sm mb-3 md:mb-4">
             From: <span className="text-gold-500">{activeProgram.name}</span>
           </p>
-          <div className="space-y-2 md:space-y-3">
+          <div className="space-y-3 md:space-y-4">
             {activeProgram.workouts.map((workout) => (
-              <button
-                key={workout.id}
-                onClick={() => handleStartWorkout(workout.id)}
-                disabled={startingWorkout === workout.id}
-                className="w-full p-3 md:p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg md:rounded-xl transition-all text-left disabled:opacity-50"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-white text-xs md:text-base mb-0.5 md:mb-1">{workout.name}</h3>
-                    <div className="flex gap-2 md:gap-4 text-[8px] md:text-xs text-gray-400">
-                      <span>Day {workout.day_number}</span>
-                      <span>{workout.exercise_count || 0} exercises</span>
-                      {workout.estimated_duration_minutes && (
-                        <span>{workout.estimated_duration_minutes} min</span>
-                      )}
+              <div key={workout.id} className="space-y-2">
+                <button
+                  onClick={() => handleStartWorkout(workout.id)}
+                  disabled={startingWorkout === workout.id}
+                  className="w-full p-3 md:p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg md:rounded-xl transition-all text-left disabled:opacity-50"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-semibold text-white text-xs md:text-base mb-0.5 md:mb-1">{workout.name}</h3>
+                      <div className="flex gap-2 md:gap-4 text-[8px] md:text-xs text-gray-400">
+                        <span>Day {workout.day_number}</span>
+                        <span>{workout.exercise_count || 0} exercises</span>
+                        {workout.estimated_duration_minutes && (
+                          <span>{workout.estimated_duration_minutes} min</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-gold-500 font-semibold text-xs md:text-base">
+                      {startingWorkout === workout.id ? "Starting..." : "Start →"}
                     </div>
                   </div>
-                  <div className="text-gold-500 font-semibold text-xs md:text-base">
-                    {startingWorkout === workout.id ? "Starting..." : "Start →"}
-                  </div>
-                </div>
-              </button>
+                </button>
+                {/* Last Session Summary */}
+                <LastSessionSummary workoutId={workout.id} workoutName={workout.name} />
+              </div>
             ))}
           </div>
         </div>
@@ -141,24 +145,27 @@ export function WorkoutStartPage() {
                 )}
               </div>
               {program.workouts && program.workouts.length > 0 ? (
-                <div className="space-y-1.5 md:space-y-2 mt-2 md:mt-3">
+                <div className="space-y-2 md:space-y-3 mt-2 md:mt-3">
                   {program.workouts.map((workout) => (
-                    <button
-                      key={workout.id}
-                      onClick={() => handleStartWorkout(workout.id)}
-                      disabled={startingWorkout === workout.id}
-                      className="w-full p-2 md:p-3 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg transition-all text-left disabled:opacity-50"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="text-white font-medium text-[10px] md:text-sm">{workout.name}</span>
-                          <span className="text-gray-400 text-[8px] md:text-xs ml-1.5 md:ml-2">Day {workout.day_number}</span>
+                    <div key={workout.id} className="space-y-1.5">
+                      <button
+                        onClick={() => handleStartWorkout(workout.id)}
+                        disabled={startingWorkout === workout.id}
+                        className="w-full p-2 md:p-3 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg transition-all text-left disabled:opacity-50"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="text-white font-medium text-[10px] md:text-sm">{workout.name}</span>
+                            <span className="text-gray-400 text-[8px] md:text-xs ml-1.5 md:ml-2">Day {workout.day_number}</span>
+                          </div>
+                          <span className="text-gold-500 text-[10px] md:text-sm">
+                            {startingWorkout === workout.id ? "..." : "Start"}
+                          </span>
                         </div>
-                        <span className="text-gold-500 text-[10px] md:text-sm">
-                          {startingWorkout === workout.id ? "..." : "Start"}
-                        </span>
-                      </div>
-                    </button>
+                      </button>
+                      {/* Last Session Summary */}
+                      <LastSessionSummary workoutId={workout.id} workoutName={workout.name} />
+                    </div>
                   ))}
                 </div>
               ) : (

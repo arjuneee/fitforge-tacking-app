@@ -16,6 +16,7 @@ import { ExercisesPage } from "./pages/ExercisesPage";
 import { PersonalRecordsPage } from "./pages/PersonalRecordsPage";
 import { WeightLogPage } from "./pages/WeightLogPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { SyncStatusIndicator } from "./components/SyncStatusIndicator";
@@ -147,6 +148,14 @@ export function App() {
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <AnalyticsPage />
           </ProtectedRoute>
         }
       />

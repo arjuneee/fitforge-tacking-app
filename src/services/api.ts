@@ -448,6 +448,11 @@ export const sessionsApi = {
     const { data } = await api.get(`/sessions?${params}`);
     return data;
   },
+
+  getLastWorkoutSession: async (workoutId: string) => {
+    const { data } = await api.get(`/sessions/workout/${workoutId}/last`);
+    return data;
+  },
 };
 
 // Analytics API

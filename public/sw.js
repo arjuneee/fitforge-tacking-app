@@ -1,6 +1,6 @@
 // Service Worker for FitForge PWA
-const CACHE_NAME = 'fitforge-v2';
-const API_CACHE_NAME = 'fitforge-api-v2';
+const CACHE_NAME = 'fitforge-v5';
+const API_CACHE_NAME = 'fitforge-api-v5';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -95,28 +95,31 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // App shell: cache-first
+  // App shell: network-first (always try to get fresh content)
   event.respondWith(
-    caches.match(request)
+    fetch(request)
       .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(request).then((response) => {
-          // Only cache successful GET responses for app shell
-          if (response.ok && request.method === 'GET') {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(request, responseToCache);
-              });
-          }
-          return response;
-        });
+        // Cache successful GET responses
+        if (response.ok && request.method === 'GET') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(request, responseToCache);
+            });
+        }
+        return response;
       })
       .catch(() => {
-        // If both cache and network fail, return offline page if available
-        if (request.destination === 'document') {
-          return caches.match('/index.html');
-        }
+        // Network failed, try cache
+        return caches.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // If both fail and it's a document, return index.html
+          if (request.destination === 'document') {
+            return caches.match('/index.html');
+          }
+        });
       })
   );
 });

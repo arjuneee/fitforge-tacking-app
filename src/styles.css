@@ -20,6 +20,27 @@ body {
   font-size: 14px;
 }
 
+/* Ensure all SVG icons inherit text color properly */
+svg {
+  color: inherit;
+}
+
+/* Ensure all text elements have light color by default */
+h1, h2, h3, h4, h5, h6, p, span, div, label, a {
+  color: inherit;
+}
+
+/* Form elements - ensure light text on dark backgrounds */
+input, textarea, select, button {
+  color: inherit;
+}
+
+/* Ensure placeholder text is visible */
+::placeholder {
+  color: #6b7280 !important;
+  opacity: 1;
+}
+
 @media (min-width: 768px) {
   html, body {
     font-size: 16px;
