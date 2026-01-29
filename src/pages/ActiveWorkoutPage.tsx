@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { sessionsApi, setsApi, workoutsApi, type Session, type ExerciseInSession, type Set } from "../services/api";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { sessionsApi, setsApi, workoutsApi, exercisesApi, type Session, type ExerciseInSession, type Set, type Exercise } from "../services/api";
 import { SetLogger, type SetLoggerRef } from "../components/SetLogger";
 import { RestTimer } from "../components/RestTimer";
 import { PreviousPerformance } from "../components/PreviousPerformance";
-import { ExerciseSelector } from "../components/ExerciseSelector";
 import { ProgressiveOverloadSuggestion } from "../components/ProgressiveOverloadSuggestion";
-import { type Exercise } from "../services/api";
 import { offlineService } from "../services/offline";
 
 interface LoggedSet extends Set {
@@ -16,14 +14,15 @@ interface LoggedSet extends Set {
 export function ActiveWorkoutPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [session, setSession] = useState<Session | null>(null);
   const [loggedSets, setLoggedSets] = useState<LoggedSet[]>([]);
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [editingSet, setEditingSet] = useState<Set | null>(null);
+  const [addingExercise, setAddingExercise] = useState(false);
   const [skippedExercises, setSkippedExercises] = useState<globalThis.Set<string>>(new globalThis.Set<string>());
   const [restTimerActive, setRestTimerActive] = useState(false);
   const [restTimerSeconds, setRestTimerSeconds] = useState(90);
@@ -36,6 +35,19 @@ export function ActiveWorkoutPage() {
       loadSession();
     }
   }, [sessionId]);
+
+  // Handle exercise selection from URL params
+  useEffect(() => {
+    const exerciseId = searchParams.get("exercise_id");
+    const saveToTemplate = searchParams.get("save_to_template") === "true";
+    if (exerciseId && session && !loading && !addingExercise) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("exercise_id");
+      newParams.delete("save_to_template");
+      setSearchParams(newParams, { replace: true });
+      handleAddExerciseById(exerciseId, saveToTemplate);
+    }
+  }, [sessionId, session?.id, searchParams.toString(), loading, addingExercise]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -140,14 +152,58 @@ export function ActiveWorkoutPage() {
     setSkippedExercises(new Set([...skippedExercises, exerciseId]));
   };
 
-  const handleAddExercise = async (exercise: Exercise, saveToTemplate: boolean = true) => {
-    if (!session) return;
+  const handleAddExerciseById = async (exerciseId: string, saveToTemplate: boolean = true) => {
+    if (!session || addingExercise) return;
+
+    // Check if exercise already exists in session
+    const existingExercise = session.exercises.find(ex => ex.exercise?.id === exerciseId);
+    if (existingExercise) {
+      // Exercise already exists, just navigate to it
+      const index = session.exercises.findIndex(ex => ex.exercise?.id === exerciseId);
+      if (index >= 0) {
+        setActiveExerciseIndex(index);
+      }
+      return;
+    }
+
+    // Store original session for rollback
+    const originalSession = session;
+    let optimisticExercise: ExerciseInSession | null = null;
 
     try {
+      setAddingExercise(true);
+      
+      // Fetch exercise details for optimistic update
+      const allExercises = await exercisesApi.list();
+      const exerciseData = allExercises.data?.find((e: Exercise) => e.id === exerciseId);
+      
+      if (exerciseData) {
+        // Create optimistic exercise entry
+        optimisticExercise = {
+          id: `temp-${Date.now()}`,
+          exercise: exerciseData,
+          target_sets: 3,
+          target_reps_min: 8,
+          target_reps_max: 12,
+          target_rpe: 8,
+          rest_seconds: 90,
+        };
+        
+        // Optimistically add to session
+        const updatedExercises = [...session.exercises, optimisticExercise] as ExerciseInSession[];
+        setSession({
+          ...session,
+          exercises: updatedExercises,
+        });
+        
+        // Move to the new exercise
+        setActiveExerciseIndex(updatedExercises.length - 1);
+      }
+      
       // Add exercise to workout template (this makes it available for future sessions too)
       if (saveToTemplate) {
         await workoutsApi.addExercise(session.workout_id, {
-          exercise_id: exercise.id,
+          exercise_id: exerciseId,
           order_index: session.exercises.length, // Add at the end
           target_sets: 3,
           target_reps_min: 8,
@@ -157,15 +213,62 @@ export function ActiveWorkoutPage() {
         });
       }
 
-      // Reload session to get the updated exercise list with proper IDs
-      await loadSession();
-
-      // Move to the newly added exercise (it will be at the end)
-      const updatedSession = await sessionsApi.get(sessionId!);
-      setActiveExerciseIndex(updatedSession.exercises.length - 1);
-      setShowExerciseSelector(false);
+      // Retry loading session until the new exercise appears (with max retries)
+      let retries = 0;
+      const maxRetries = 5;
+      let found = false;
+      
+      while (retries < maxRetries && !found) {
+        // Small delay before checking
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        try {
+          await loadSession();
+          
+          // Check if exercise now exists in the session
+          const currentSession = await sessionsApi.get(sessionId!);
+          const foundExercise = currentSession.exercises?.find((ex: ExerciseInSession) => 
+            ex.exercise?.id === exerciseId
+          );
+          
+          if (foundExercise) {
+            // Exercise found, move to it
+            const exerciseIndex = currentSession.exercises.findIndex((ex: ExerciseInSession) => 
+              ex.exercise?.id === exerciseId
+            );
+            if (exerciseIndex >= 0) {
+              setActiveExerciseIndex(exerciseIndex);
+            }
+            found = true;
+            break;
+          }
+        } catch (err) {
+          // If error, continue retrying
+          console.warn("Retry failed, attempting again...", err);
+        }
+        
+        retries++;
+      }
+      
+      // If we exhausted retries, still try to load and navigate
+      if (!found && retries >= maxRetries) {
+        await loadSession();
+        const currentSession = await sessionsApi.get(sessionId!);
+        const exerciseIndex = currentSession.exercises?.findIndex((ex: ExerciseInSession) => 
+          ex.exercise?.id === exerciseId
+        );
+        if (exerciseIndex >= 0) {
+          setActiveExerciseIndex(exerciseIndex);
+        }
+      }
     } catch (err: any) {
+      // Revert optimistic update on error
+      if (optimisticExercise) {
+        setSession(originalSession);
+      }
       alert(err.response?.data?.detail || err.message || "Failed to add exercise");
+    } finally {
+      setAddingExercise(false);
     }
   };
 
@@ -282,7 +385,7 @@ export function ActiveWorkoutPage() {
               );
             })}
             <button
-              onClick={() => setShowExerciseSelector(true)}
+              onClick={() => navigate(`/exercises/select?session_id=${sessionId}&save_to_template=true`)}
               className="flex-shrink-0 px-3 md:px-4 py-2 rounded-xl text-sm bg-gold-500/10 text-gold-500 border border-gold-500/20 active:scale-95"
             >
               + Add
@@ -453,14 +556,6 @@ export function ActiveWorkoutPage() {
       )}
 
       {/* Exercise Selector */}
-      {showExerciseSelector && (
-        <ExerciseSelector
-          onSelect={handleAddExercise}
-          onClose={() => setShowExerciseSelector(false)}
-          showSaveToTemplate={true}
-          defaultSaveToTemplate={true}
-        />
-      )}
 
       {/* Edit Set Modal */}
       {editingSet && (

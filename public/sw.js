@@ -1,6 +1,6 @@
 // Service Worker for FitForge PWA
-const CACHE_NAME = 'fitforge-v8';
-const API_CACHE_NAME = 'fitforge-api-v8';
+const CACHE_NAME = 'fitforge-v21';
+const API_CACHE_NAME = 'fitforge-api-v21';
 const urlsToCache = [
   '/',
   '/index.html',

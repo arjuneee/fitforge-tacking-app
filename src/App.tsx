@@ -13,6 +13,8 @@ import { ActiveWorkoutPage } from "./pages/ActiveWorkoutPage";
 import { SessionCompletePage } from "./pages/SessionCompletePage";
 import { ExerciseHistoryPage } from "./pages/ExerciseHistoryPage";
 import { ExercisesPage } from "./pages/ExercisesPage";
+import { ExerciseSelectPage } from "./pages/ExerciseSelectPage";
+import { ExerciseCreatePage } from "./pages/ExerciseCreatePage";
 import { PersonalRecordsPage } from "./pages/PersonalRecordsPage";
 import { WeightLogPage } from "./pages/WeightLogPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -124,6 +126,22 @@ export function App() {
         element={
           <ProtectedRoute>
             <ExerciseHistoryPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/exercises/select"
+        element={
+          <ProtectedRoute>
+            <ExerciseSelectPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/exercises/create"
+        element={
+          <ProtectedRoute>
+            <ExerciseCreatePage />
           </ProtectedRoute>
         }
       />

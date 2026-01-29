@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { workoutsApi, programsApi } from "../services/api";
+import { PageLayout } from "../components/PageLayout";
 
 export function WorkoutEditPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const programId = searchParams.get("program_id") || id?.split("-")[0]; // Fallback logic
+  const programId = searchParams.get("program_id") || id?.split("-")[0];
   const navigate = useNavigate();
   const isNew = !id || id === "new";
 
@@ -96,140 +97,119 @@ export function WorkoutEditPage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-black">
-        <div className="text-gold-500">Loading...</div>
-      </div>
+      <PageLayout title={isNew ? "Create Workout" : "Edit Workout"} showBackButton>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-gold-500 text-sm">Loading...</div>
+        </div>
+      </PageLayout>
     );
   }
 
   if (!programId && !program) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-black">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">Program ID is required</p>
-          <button onClick={() => navigate(-1)} className="text-gold-500">
+      <PageLayout title="Error" showBackButton>
+        <div className="text-center py-20">
+          <p className="text-red-400 text-sm mb-4">Program ID is required</p>
+          <button onClick={() => navigate(-1)} className="text-gold-500 text-sm">
             Go Back
           </button>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-dvh bg-black px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <button
-            onClick={() => {
-              if (programId) {
-                navigate(`/programs/${programId}`);
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="text-gold-500 hover:text-gold-400 mb-4 flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back
-          </button>
-          <h1 className="text-3xl font-bold text-gradient">
-            {isNew ? "Create Workout" : "Edit Workout"}
-          </h1>
-          {program && (
-            <p className="text-gray-400 mt-2">For: {program.name}</p>
-          )}
+    <PageLayout 
+      title={isNew ? "Create Workout" : "Edit Workout"} 
+      showBackButton
+      backPath={programId ? `/programs/${programId}` : undefined}
+    >
+      {program && (
+        <div className="bg-white/5 rounded-2xl border border-white/5 p-3 mb-4">
+          <p className="text-xs text-gray-400 mb-1">Program</p>
+          <p className="text-white text-sm font-medium">{program.name}</p>
         </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="glass-card rounded-3xl p-8 glow-border">
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Workout Name *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="input-field"
-                placeholder="e.g., Push Day, Leg Day"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Day Number *
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="7"
-                value={formData.day_number}
-                onChange={(e) => setFormData({ ...formData, day_number: parseInt(e.target.value) })}
-                required
-                className="input-field"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Estimated Duration (minutes)
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.estimated_duration_minutes}
-                onChange={(e) => setFormData({ ...formData, estimated_duration_minutes: parseInt(e.target.value) || 60 })}
-                className="input-field"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Notes
-              </label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-                className="input-field"
-                placeholder="Workout notes, focus areas..."
-              />
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  if (programId) {
-                    navigate(`/programs/${programId}`);
-                  } else {
-                    navigate(-1);
-                  }
-                }}
-                className="btn-secondary flex-1"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn-primary flex-1 disabled:opacity-50"
-              >
-                {saving ? "Saving..." : isNew ? "Create Workout" : "Save Changes"}
-              </button>
-            </div>
+      <form onSubmit={handleSubmit} className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+        {error && (
+          <div className="p-4 bg-red-500/10 border-b border-red-500/20">
+            <p className="text-red-400 text-sm">{error}</p>
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+
+        <div className="p-4 space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">Workout Name *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              className="w-full h-11 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500/50"
+              placeholder="e.g., Push Day, Leg Day"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">Day Number *</label>
+            <input
+              type="number"
+              min="1"
+              max="7"
+              value={formData.day_number}
+              onChange={(e) => setFormData({ ...formData, day_number: parseInt(e.target.value) })}
+              required
+              className="w-full h-11 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-gold-500/50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">Estimated Duration (minutes)</label>
+            <input
+              type="number"
+              min="1"
+              value={formData.estimated_duration_minutes}
+              onChange={(e) => setFormData({ ...formData, estimated_duration_minutes: parseInt(e.target.value) || 60 })}
+              className="w-full h-11 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-gold-500/50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">Notes</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500/50 resize-none"
+              placeholder="Workout notes, focus areas..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (programId) {
+                  navigate(`/programs/${programId}`);
+                } else {
+                  navigate(-1);
+                }
+              }}
+              className="flex-1 h-11 bg-white/5 border border-white/10 text-white rounded-xl text-sm font-medium active:bg-white/10"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 h-11 bg-gradient-to-r from-gold-600 to-gold-500 text-black rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-80"
+            >
+              {saving ? "Saving..." : isNew ? "Create" : "Save"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </PageLayout>
   );
 }
