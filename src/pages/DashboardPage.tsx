@@ -16,7 +16,7 @@ interface DashboardStats {
 export function DashboardPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { isAvailable, promptInstall, hasNativePrompt } = useInstallPrompt();
+  const { isAvailable, promptInstall } = useInstallPrompt();
   const [stats, setStats] = useState<DashboardStats>({
     total_workouts: 0,
     total_volume_kg: 0,
@@ -46,92 +46,45 @@ export function DashboardPage() {
     navigate("/login");
   };
 
-  return (
-    <div className="min-h-dvh relative overflow-hidden pb-20 md:pb-8">
-      {/* Background - optimized for mobile */}
-      <div className="fixed inset-0 bg-black -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/10 via-black to-gold-900/5" />
-        <div className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-gold-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-violet-500/5 rounded-full blur-3xl" />
-      </div>
+  const userName = user?.user_metadata?.name || user?.email?.split("@")[0] || "Athlete";
 
-      {/* Header - Mobile: Icons only */}
-      <header className="sticky top-0 z-50 glass-card border-t-0 border-x-0 rounded-none safe-top">
-        <div className="max-w-6xl mx-auto px-3 md:px-4 py-2.5 md:py-4 flex justify-between items-center">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/20">
-              <svg className="w-4 h-4 md:w-5 md:h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-              </svg>
+  return (
+    <div className="min-h-dvh bg-black pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/5 safe-top">
+        <div className="px-4 py-3 flex items-center justify-between">
+          {/* Logo & User */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center">
+              <span className="text-black font-bold text-lg">
+                {userName.charAt(0).toUpperCase()}
+              </span>
             </div>
-            <span className="font-display font-bold text-sm md:text-xl text-gradient tracking-wide">FITFORGE</span>
+            <div>
+              <p className="text-white font-semibold text-sm">{userName}</p>
+              <p className="text-gray-500 text-xs">Let's crush it today! 💪</p>
+            </div>
           </div>
-          
-          {/* Desktop buttons - with text */}
-          <div className="hidden md:flex items-center gap-3">
+
+          {/* Header Actions */}
+          <div className="flex items-center gap-2">
             {isAvailable && (
               <button
                 onClick={promptInstall}
-                className="btn-secondary text-sm flex items-center gap-2"
-                title={hasNativePrompt ? "Install App" : "Install App (tap for instructions)"}
+                className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Install
               </button>
             )}
             <button
               onClick={() => navigate("/profile")}
-              className="btn-secondary text-sm flex items-center gap-2"
-              title="Edit Profile"
+              className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Profile
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="btn-secondary text-sm flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Sign Out
-            </button>
-          </div>
-
-          {/* Mobile buttons - icons only */}
-          <div className="flex md:hidden items-center gap-1">
-            {isAvailable && (
-              <button
-                onClick={promptInstall}
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-gold-500/20 text-gold-500 active:bg-gold-500/30"
-                title="Install App"
-              >
-                <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </button>
-            )}
-            <button
-              onClick={() => navigate("/profile")}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-gray-300 active:bg-white/10"
-              title="Profile"
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-gray-300 active:bg-white/10"
-              title="Sign Out"
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
           </div>
@@ -139,147 +92,170 @@ export function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-8">
-        {/* Welcome Banner - Compact on mobile */}
-        <div className="glass-card rounded-xl md:rounded-3xl p-3 md:p-8 mb-3 md:mb-8 glow-border relative overflow-hidden animate-slide-up">
-          <div className="absolute top-0 right-0 w-24 md:w-64 h-24 md:h-64 bg-gradient-to-br from-gold-500/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <p className="text-gray-400 text-[10px] md:text-sm uppercase tracking-wider mb-0.5 md:mb-2">Welcome back</p>
-            <h1 className="text-base md:text-3xl font-bold text-white mb-0.5 md:mb-2">
-              {user?.user_metadata?.name || user?.email?.split("@")[0] || "Athlete"}
-            </h1>
-            <p className="text-gray-500 text-xs md:text-base">Ready to crush your goals today?</p>
-          </div>
-        </div>
-
-        {/* Stats Grid - Mobile optimized */}
-        <div className="grid grid-cols-4 gap-1.5 md:grid-cols-4 md:gap-4 mb-3 md:mb-8">
-          {[
-            { 
-              label: "Workouts", 
-              value: statsLoading ? "..." : stats.total_workouts.toString(), 
-              icon: "🏋️", 
-              color: "gold" 
-            },
-            { 
-              label: "Volume", 
-              value: statsLoading ? "..." : `${(stats.total_volume_kg / 1000).toFixed(1)}t`, 
-              fullValue: statsLoading ? "..." : `${stats.total_volume_kg.toFixed(0)} kg`,
-              icon: "📊", 
-              color: "violet" 
-            },
-            { 
-              label: "Streak", 
-              value: statsLoading ? "..." : `${stats.current_streak_days}d`, 
-              fullValue: statsLoading ? "..." : `${stats.current_streak_days} days`,
-              icon: "🔥", 
-              color: "gold" 
-            },
-            { 
-              label: "PRs", 
-              value: statsLoading ? "..." : stats.total_prs.toString(), 
-              icon: "🏆", 
-              color: "violet" 
-            },
-          ].map((stat, i) => (
-            <div 
-              key={i} 
-              className={`glass-card rounded-lg md:rounded-2xl p-2 md:p-5 hover:border-gold-500/30 transition-all group animate-slide-up stagger-${i + 1}`}
-            >
-              <div className="flex items-center justify-between mb-1 md:mb-3">
-                <span className="text-sm md:text-2xl">{stat.icon}</span>
-                <span className={`w-1 h-1 md:w-2 md:h-2 rounded-full ${stat.color === 'gold' ? 'bg-gold-500' : 'bg-violet-500'} opacity-60`} />
-              </div>
-              <p className="text-sm md:text-2xl font-bold text-white mb-0 md:mb-1">
-                <span className="md:hidden">{stat.value}</span>
-                <span className="hidden md:inline">{stat.fullValue || stat.value}</span>
-              </p>
-              <p className="text-[8px] md:text-xs text-gray-500 uppercase tracking-wider">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Start Workout CTA - Primary Action */}
+      <main className="px-4 py-4 space-y-4">
+        {/* Start Workout Banner */}
         <button
           onClick={() => navigate("/workouts/start")}
-          className="w-full glass-card rounded-xl md:rounded-2xl p-4 md:p-6 mb-3 md:mb-8 glow-border flex items-center justify-between group active:scale-[0.98] transition-transform animate-slide-up"
+          className="w-full bg-gradient-to-r from-gold-600 to-gold-500 rounded-2xl p-4 flex items-center justify-between group active:scale-[0.98] transition-transform"
         >
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/30">
-              <svg className="w-6 h-6 md:w-7 md:h-7 text-black" fill="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-black/20 flex items-center justify-center">
+              <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
             <div className="text-left">
-              <p className="font-bold text-white text-base md:text-xl">Start Workout</p>
-              <p className="text-gray-400 text-xs md:text-sm">Begin a new session</p>
+              <p className="text-black font-bold text-base">Start Workout</p>
+              <p className="text-black/70 text-xs">Begin your training session</p>
             </div>
           </div>
-          <svg className="w-5 h-5 md:w-6 md:h-6 text-gold-500 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-black/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
 
-        {/* Quick Actions - Simplified */}
-        <div className="glass-card rounded-xl md:rounded-3xl p-3 md:p-6 mb-3 md:mb-8">
-          <h2 className="text-xs md:text-lg font-semibold text-white mb-3 md:mb-4 flex items-center gap-1.5 px-1">
-            <svg className="w-3.5 h-3.5 md:w-5 md:h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-4 gap-2 md:gap-3">
+        {/* Stats Grid */}
+        <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white font-semibold text-sm">Your Progress</h2>
+            <button 
+              onClick={() => navigate("/analytics")}
+              className="text-gold-500 text-xs font-medium"
+            >
+              View All
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
             {[
-              { label: "Programs", icon: "📋", link: "/programs" },
-              { label: "Analytics", icon: "📊", link: "/analytics" },
-              { label: "PRs", icon: "🏆", link: "/personal-records" },
-              { label: "Weight", icon: "⚖️", link: "/weight-log" },
+              { label: "Workouts", value: statsLoading ? "..." : stats.total_workouts, icon: "🏋️" },
+              { label: "Volume", value: statsLoading ? "..." : `${(stats.total_volume_kg / 1000).toFixed(1)}t`, icon: "📊" },
+              { label: "Streak", value: statsLoading ? "..." : `${stats.current_streak_days}d`, icon: "🔥" },
+              { label: "PRs", value: statsLoading ? "..." : stats.total_prs, icon: "🏆" },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="w-12 h-12 mx-auto rounded-2xl bg-white/5 flex items-center justify-center mb-2">
+                  <span className="text-xl">{stat.icon}</span>
+                </div>
+                <p className="text-white font-bold text-sm">{stat.value}</p>
+                <p className="text-gray-500 text-[10px]">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white font-semibold text-sm">Quick Actions</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            {[
+              { label: "Programs", icon: "📋", link: "/programs", color: "from-violet-500/20 to-violet-600/20" },
+              { label: "Analytics", icon: "📊", link: "/analytics", color: "from-cyan-500/20 to-cyan-600/20" },
+              { label: "Records", icon: "🏆", link: "/personal-records", color: "from-gold-500/20 to-gold-600/20" },
+              { label: "Weight", icon: "⚖️", link: "/weight-log", color: "from-green-500/20 to-green-600/20" },
             ].map((action, i) => (
               <button
                 key={i}
                 onClick={() => navigate(action.link)}
-                className={`flex flex-col items-center justify-center p-3 md:p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 transition-all text-center group w-full active:scale-95 animate-slide-up stagger-${i + 1}`}
+                className="flex flex-col items-center active:scale-95 transition-transform"
               >
-                <span className="text-xl md:text-2xl mb-1">{action.icon}</span>
-                <p className="font-medium text-white text-[10px] md:text-sm">{action.label}</p>
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.color} border border-white/10 flex items-center justify-center mb-2`}>
+                  <span className="text-2xl">{action.icon}</span>
+                </div>
+                <p className="text-gray-300 text-[11px] font-medium">{action.label}</p>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Quick Weight Log - Compact */}
-        <div className="mb-3 md:mb-8">
-          <QuickWeightLog />
+        {/* Quick Weight Log */}
+        <QuickWeightLog />
+
+        {/* Feature Cards */}
+        <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-white/5">
+            <h2 className="text-white font-semibold text-sm">Features</h2>
+          </div>
+          
+          <div className="divide-y divide-white/5">
+            <button
+              onClick={() => navigate("/programs")}
+              className="w-full p-4 flex items-center gap-4 active:bg-white/5 transition-colors"
+            >
+              <div className="w-11 h-11 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">📋</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-white font-medium text-sm">Training Programs</p>
+                <p className="text-gray-500 text-xs">Create & manage your workout plans</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => navigate("/analytics")}
+              className="w-full p-4 flex items-center gap-4 active:bg-white/5 transition-colors"
+            >
+              <div className="w-11 h-11 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">📈</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-white font-medium text-sm">Analytics & Insights</p>
+                <p className="text-gray-500 text-xs">Track your progress over time</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => navigate("/exercises")}
+              className="w-full p-4 flex items-center gap-4 active:bg-white/5 transition-colors"
+            >
+              <div className="w-11 h-11 rounded-xl bg-gold-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">💪</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-white font-medium text-sm">Exercise Library</p>
+                <p className="text-gray-500 text-xs">Browse all exercises & history</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* View Analytics Banner - Mobile only */}
-        <button
-          onClick={() => navigate("/analytics")}
-          className="w-full md:hidden glass-card rounded-xl p-3 flex items-center justify-between group active:scale-[0.98] transition-transform mb-3"
-        >
-          <div className="flex items-center gap-3">
+        {/* Coming Soon */}
+        <div className="bg-gradient-to-br from-violet-500/10 to-gold-500/10 rounded-2xl p-4 border border-white/5">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
-              <span className="text-lg">📈</span>
+              <span className="text-lg">🚀</span>
             </div>
-            <div className="text-left">
-              <p className="font-semibold text-white text-sm">View Analytics</p>
-              <p className="text-gray-400 text-[10px]">Charts, trends & insights</p>
+            <div>
+              <p className="text-white font-semibold text-sm">Coming Soon</p>
+              <p className="text-gray-400 text-xs">Version 2 features</p>
             </div>
           </div>
-          <svg className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Desktop Only - Show some charts */}
-        <div className="hidden md:block space-y-8">
-          <p className="text-gray-400 text-sm text-center">
-            View detailed analytics and charts on the{" "}
-            <button onClick={() => navigate("/analytics")} className="text-gold-500 hover:underline">
-              Analytics page
-            </button>
-          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {["📸 Progress Photos", "🧮 Plate Calculator", "🔔 Notifications", "📤 Data Export"].map((feature, i) => (
+              <div key={i} className="bg-black/30 rounded-xl px-3 py-2">
+                <p className="text-gray-400 text-xs">{feature}</p>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Sign Out */}
+        <button
+          onClick={handleSignOut}
+          className="w-full py-3 text-gray-500 text-sm font-medium"
+        >
+          Sign Out
+        </button>
       </main>
 
       {/* Mobile Bottom Navigation */}

@@ -6,8 +6,8 @@ interface WeightLog {
   id: string;
   weight_kg: number;
   logged_date: string;
-  time_of_day: string;
-  notes: string | null;
+  time_of_day?: string;
+  notes?: string;
   created_at: string;
 }
 
@@ -15,14 +15,14 @@ export function WeightLogPage() {
   const [logs, setLogs] = useState<WeightLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  
-  // Form state
-  const [weight, setWeight] = useState<string>("");
-  const [logDate, setLogDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [timeOfDay, setTimeOfDay] = useState<string>("morning");
-  const [notes, setNotes] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    weight_kg: "",
+    logged_date: new Date().toISOString().split("T")[0],
+    time_of_day: "morning" as "morning" | "afternoon" | "evening",
+    notes: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadLogs();
@@ -32,10 +32,10 @@ export function WeightLogPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await weightLogsApi.list(90);
-      setLogs(response.entries || []);
+      const response = await weightLogsApi.list();
+      setLogs(response.data || []);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to load weight logs");
+      setError(err.response?.data?.detail || err.message || "Failed to load logs");
     } finally {
       setLoading(false);
     }
@@ -43,254 +43,199 @@ export function WeightLogPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!weight || parseFloat(weight) <= 0) {
-      setError("Please enter a valid weight");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
+    if (!formData.weight_kg) return;
 
     try {
-      if (editingId) {
-        await weightLogsApi.update(editingId, {
-          weight_kg: parseFloat(weight),
-          logged_date: logDate,
-          time_of_day: timeOfDay,
-          notes: notes || null,
-        });
-      } else {
-        await weightLogsApi.create({
-          weight_kg: parseFloat(weight),
-          logged_date: logDate,
-          time_of_day: timeOfDay,
-          notes: notes || null,
-        });
-      }
-      
-      setWeight("");
-      setLogDate(new Date().toISOString().split('T')[0]);
-      setTimeOfDay("morning");
-      setNotes("");
-      setEditingId(null);
-      
-      await loadLogs();
+      setSubmitting(true);
+      await weightLogsApi.create({
+        weight_kg: parseFloat(formData.weight_kg),
+        logged_date: formData.logged_date,
+        time_of_day: formData.time_of_day,
+        notes: formData.notes || null,
+      });
+      setFormData({
+        weight_kg: "",
+        logged_date: new Date().toISOString().split("T")[0],
+        time_of_day: "morning",
+        notes: "",
+      });
+      setShowAddForm(false);
+      loadLogs();
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to save weight log");
+      alert(err.response?.data?.detail || err.message || "Failed to add log");
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
-  };
-
-  const handleEdit = (log: WeightLog) => {
-    setEditingId(log.id);
-    setWeight(log.weight_kg.toString());
-    setLogDate(log.logged_date);
-    setTimeOfDay(log.time_of_day);
-    setNotes(log.notes || "");
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setWeight("");
-    setLogDate(new Date().toISOString().split('T')[0]);
-    setTimeOfDay("morning");
-    setNotes("");
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this weight log?")) {
-      return;
-    }
-
+    if (!confirm("Delete this entry?")) return;
     try {
       await weightLogsApi.delete(id);
-      await loadLogs();
+      loadLogs();
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to delete weight log");
+      alert(err.response?.data?.detail || err.message || "Failed to delete");
     }
   };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
-    } else {
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    }
+    return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   };
 
-  const getTimeOfDayLabel = (time: string) => {
-    return time.charAt(0).toUpperCase() + time.slice(1);
+  const getTimeIcon = (time: string) => {
+    switch (time) {
+      case "morning": return "🌅";
+      case "afternoon": return "☀️";
+      case "evening": return "🌙";
+      default: return "⏰";
+    }
   };
 
   if (loading) {
     return (
-      <PageLayout title="Weight Log" showBackButton backPath="/dashboard">
+      <PageLayout title="Weight Log" showBackButton>
         <div className="flex items-center justify-center py-20">
-          <div className="text-gold-500 text-sm">Loading weight logs...</div>
+          <div className="text-gold-500 text-sm">Loading...</div>
         </div>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Weight Log" showBackButton backPath="/dashboard">
-      {/* Log Form */}
-      <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6 mb-3 md:mb-6">
-        <h2 className="text-sm md:text-xl font-semibold text-white mb-3 md:mb-4">
-          {editingId ? "Edit Entry" : "Log Weight"}
-        </h2>
-        
-        {error && (
-          <div className="mb-3 p-2.5 md:p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-[10px] md:text-sm">
-            {error}
+    <PageLayout 
+      title="Weight Log" 
+      showBackButton
+      rightAction={
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="w-9 h-9 rounded-full bg-gold-500 flex items-center justify-center"
+        >
+          <svg className={`w-5 h-5 text-black transition-transform ${showAddForm ? "rotate-45" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      }
+    >
+      {/* Add Form */}
+      {showAddForm && (
+        <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden mb-4">
+          <div className="p-4 border-b border-white/5">
+            <p className="text-white font-semibold text-sm">Add Entry</p>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-          <div className="grid grid-cols-3 gap-2 md:gap-4">
-            {/* Weight Input */}
+          <form onSubmit={handleSubmit} className="p-4 space-y-4">
             <div>
-              <label className="block text-[10px] md:text-sm text-gray-300 mb-1.5">Weight (kg)</label>
+              <label className="block text-gray-400 text-xs mb-2">Weight (kg)</label>
               <input
                 type="number"
                 step="0.1"
-                min="0"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="75.5"
-                className="input-field text-xs md:text-base"
+                value={formData.weight_kg}
+                onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
+                className="w-full h-12 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500/50"
+                placeholder="Enter weight"
                 required
               />
             </div>
-
-            {/* Date Selector */}
             <div>
-              <label className="block text-[10px] md:text-sm text-gray-300 mb-1.5">Date</label>
+              <label className="block text-gray-400 text-xs mb-2">Date</label>
               <input
                 type="date"
-                value={logDate}
-                onChange={(e) => setLogDate(e.target.value)}
-                className="input-field text-xs md:text-base"
-                required
+                value={formData.logged_date}
+                onChange={(e) => setFormData({ ...formData, logged_date: e.target.value })}
+                className="w-full h-12 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-gold-500/50"
               />
             </div>
-
-            {/* Time of Day */}
             <div>
-              <label className="block text-[10px] md:text-sm text-gray-300 mb-1.5">Time</label>
-              <select
-                value={timeOfDay}
-                onChange={(e) => setTimeOfDay(e.target.value)}
-                className="input-field text-xs md:text-base"
-                required
-              >
-                <option value="morning">AM</option>
-                <option value="afternoon">PM</option>
-                <option value="evening">Eve</option>
-              </select>
+              <label className="block text-gray-400 text-xs mb-2">Time of Day</label>
+              <div className="grid grid-cols-3 gap-2">
+                {["morning", "afternoon", "evening"].map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, time_of_day: time as any })}
+                    className={`py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      formData.time_of_day === time
+                        ? "bg-gold-500 text-black"
+                        : "bg-white/5 text-gray-400"
+                    }`}
+                  >
+                    {getTimeIcon(time)} {time.charAt(0).toUpperCase() + time.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-[10px] md:text-sm text-gray-300 mb-1.5">Notes (Optional)</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any notes..."
-              rows={2}
-              className="input-field text-xs md:text-base"
-              maxLength={500}
-            />
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex gap-2 md:gap-3">
+            <div>
+              <label className="block text-gray-400 text-xs mb-2">Notes (optional)</label>
+              <input
+                type="text"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="w-full h-12 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500/50"
+                placeholder="e.g., After workout, fasted..."
+              />
+            </div>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="btn-primary flex-1 text-xs md:text-base py-2.5"
+              disabled={submitting}
+              className="w-full h-12 bg-gradient-to-r from-gold-600 to-gold-500 text-black font-semibold text-sm rounded-xl disabled:opacity-50"
             >
-              {isSubmitting ? "Saving..." : editingId ? "Update" : "Log Weight"}
+              {submitting ? "Saving..." : "Save Entry"}
             </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="btn-secondary text-xs md:text-base px-4"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
+      )}
 
-      {/* Historical Logs */}
-      <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-        <h2 className="text-sm md:text-xl font-semibold text-white mb-3 md:mb-4">Recent Entries</h2>
-        
-        {logs.length === 0 ? (
-          <div className="text-center py-8 md:py-12">
-            <p className="text-gray-400 text-xs md:text-sm">No weight logs yet. Start logging your weight above!</p>
+      {/* Error */}
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* Logs List */}
+      {logs.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4">
+            <span className="text-3xl">⚖️</span>
           </div>
-        ) : (
-          <div className="space-y-2 md:space-y-3">
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                className="p-3 md:p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg md:rounded-xl transition-all"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 md:gap-3 mb-1">
-                      <p className="text-lg md:text-2xl font-bold text-white">
-                        {log.weight_kg.toFixed(1)} <span className="text-[10px] md:text-sm text-gray-500 font-normal">kg</span>
-                      </p>
-                      <span className="px-1.5 py-0.5 bg-white/10 text-gray-400 rounded text-[8px] md:text-xs">
-                        {getTimeOfDayLabel(log.time_of_day)}
-                      </span>
-                    </div>
-                    <p className="text-[10px] md:text-sm text-gray-400">{formatDate(log.logged_date)}</p>
-                    {log.notes && (
-                      <p className="text-[10px] md:text-sm text-gray-500 mt-1 md:mt-2">{log.notes}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-1 md:gap-2">
-                    <button
-                      onClick={() => handleEdit(log)}
-                      className="p-1.5 md:p-2 text-gray-400 hover:text-gold-400 transition-colors"
-                      title="Edit"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(log.id)}
-                      className="p-1.5 md:p-2 text-gray-400 hover:text-red-400 transition-colors"
-                      title="Delete"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+          <h2 className="text-white font-semibold text-lg mb-2">No Entries Yet</h2>
+          <p className="text-gray-500 text-sm mb-6">Start tracking your weight</p>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="py-3 px-6 bg-gradient-to-r from-gold-600 to-gold-500 text-black font-semibold text-sm rounded-xl"
+          >
+            Add First Entry
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {logs.map((log) => (
+            <div
+              key={log.id}
+              className="bg-white/5 rounded-2xl border border-white/5 p-4 flex items-center gap-4"
+            >
+              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">{getTimeIcon(log.time_of_day || "morning")}</span>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold text-lg">{log.weight_kg} kg</p>
+                <p className="text-gray-500 text-xs">{formatDate(log.logged_date)}</p>
+                {log.notes && (
+                  <p className="text-gray-600 text-xs truncate">{log.notes}</p>
+                )}
+              </div>
+              <button
+                onClick={() => handleDelete(log.id)}
+                className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center"
+              >
+                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </PageLayout>
   );
 }

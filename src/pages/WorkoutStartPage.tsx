@@ -64,7 +64,7 @@ export function WorkoutStartPage() {
 
   if (loading) {
     return (
-      <PageLayout title="Start Workout">
+      <PageLayout title="Start Workout" showBackButton>
         <div className="flex items-center justify-center py-20">
           <div className="text-gold-500 text-sm">Loading...</div>
         </div>
@@ -74,12 +74,12 @@ export function WorkoutStartPage() {
 
   if (error) {
     return (
-      <PageLayout title="Start Workout">
+      <PageLayout title="Start Workout" showBackButton>
         <div className="text-center py-20">
           <p className="text-red-400 text-sm mb-4">{error}</p>
           <button
             onClick={() => navigate("/programs")}
-            className="text-gold-500 hover:text-gold-400 text-sm"
+            className="text-gold-500 text-sm"
           >
             Go to Programs
           </button>
@@ -89,91 +89,121 @@ export function WorkoutStartPage() {
   }
 
   return (
-    <PageLayout title="Start Workout">
-      {/* Today's Suggested Workout */}
+    <PageLayout title="Start Workout" showBackButton>
+      {/* Active Program Workouts */}
       {activeProgram && activeProgram.workouts && activeProgram.workouts.length > 0 && (
-        <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6 mb-3 md:mb-6 glow-border">
-          <h2 className="text-sm md:text-xl font-semibold text-white mb-2 md:mb-4">Suggested Workout</h2>
-          <p className="text-gray-400 text-[10px] md:text-sm mb-3 md:mb-4">
-            From: <span className="text-gold-500">{activeProgram.name}</span>
-          </p>
-          <div className="space-y-3 md:space-y-4">
+        <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden mb-4">
+          <div className="p-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gold-500/20 flex items-center justify-center">
+                <span className="text-lg">⭐</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-semibold text-sm">Suggested Workout</p>
+                <p className="text-gray-500 text-xs">{activeProgram.name}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="divide-y divide-white/5">
             {activeProgram.workouts.map((workout) => (
-              <div key={workout.id} className="space-y-2">
+              <div key={workout.id}>
                 <button
                   onClick={() => handleStartWorkout(workout.id)}
                   disabled={startingWorkout === workout.id}
-                  className="w-full p-3 md:p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg md:rounded-xl transition-all text-left disabled:opacity-50"
+                  className="w-full p-4 flex items-center gap-4 active:bg-white/5 transition-colors disabled:opacity-50"
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-white text-xs md:text-base mb-0.5 md:mb-1">{workout.name}</h3>
-                      <div className="flex gap-2 md:gap-4 text-[8px] md:text-xs text-gray-400">
-                        <span>Day {workout.day_number}</span>
-                        <span>{workout.exercise_count || 0} exercises</span>
-                        {workout.estimated_duration_minutes && (
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-gold-500/20 to-gold-600/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-sm">D{workout.day_number}</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-white font-medium text-sm">{workout.name}</p>
+                    <div className="flex gap-2 text-gray-500 text-xs">
+                      <span>{workout.exercise_count || 0} exercises</span>
+                      {workout.estimated_duration_minutes && (
+                        <>
+                          <span>•</span>
                           <span>{workout.estimated_duration_minutes} min</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-gold-500 font-semibold text-xs md:text-base">
-                      {startingWorkout === workout.id ? "Starting..." : "Start →"}
+                        </>
+                      )}
                     </div>
                   </div>
+                  <div className="text-gold-500 text-sm font-semibold">
+                    {startingWorkout === workout.id ? "..." : "Start"}
+                  </div>
                 </button>
-                {/* Last Session Summary */}
-                <LastSessionSummary workoutId={workout.id} workoutName={workout.name} />
+                <div className="px-4 pb-3">
+                  <LastSessionSummary workoutId={workout.id} workoutName={workout.name} />
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* All Workouts */}
-      <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-        <h2 className="text-sm md:text-xl font-semibold text-white mb-3 md:mb-4">All Workouts</h2>
-        <div className="space-y-3 md:space-y-4">
-          {programs.map((program) => (
-            <div key={program.id} className="border border-white/10 rounded-lg md:rounded-xl p-3 md:p-4">
-              <div className="flex justify-between items-start mb-2 md:mb-3">
-                <div>
-                  <h3 className="font-semibold text-white text-xs md:text-base mb-0.5 md:mb-1">{program.name}</h3>
-                  <p className="text-gray-400 text-[10px] md:text-sm line-clamp-1">{program.description || "No description"}</p>
-                </div>
-                {program.is_active && (
-                  <span className="flex-shrink-0 px-1.5 py-0.5 md:px-2 md:py-1 bg-gold-500/20 text-gold-500 rounded text-[8px] md:text-xs">Active</span>
-                )}
+      {/* All Programs */}
+      <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+        <div className="p-4 border-b border-white/5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                <span className="text-lg">📋</span>
               </div>
+              <div>
+                <p className="text-white font-semibold text-sm">All Workouts</p>
+                <p className="text-gray-500 text-xs">Select from your programs</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/programs")}
+              className="text-gold-500 text-xs font-medium"
+            >
+              Manage
+            </button>
+          </div>
+        </div>
+        
+        <div className="divide-y divide-white/5">
+          {programs.map((program) => (
+            <div key={program.id} className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <p className="text-white font-medium text-sm">{program.name}</p>
+                  {program.is_active && (
+                    <span className="px-2 py-0.5 bg-gold-500/20 text-gold-500 rounded-full text-[10px] font-medium">
+                      Active
+                    </span>
+                  )}
+                </div>
+              </div>
+              
               {program.workouts && program.workouts.length > 0 ? (
-                <div className="space-y-2 md:space-y-3 mt-2 md:mt-3">
+                <div className="space-y-2">
                   {program.workouts.map((workout) => (
-                    <div key={workout.id} className="space-y-1.5">
-                      <button
-                        onClick={() => handleStartWorkout(workout.id)}
-                        disabled={startingWorkout === workout.id}
-                        className="w-full p-2 md:p-3 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg transition-all text-left disabled:opacity-50"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <span className="text-white font-medium text-[10px] md:text-sm">{workout.name}</span>
-                            <span className="text-gray-400 text-[8px] md:text-xs ml-1.5 md:ml-2">Day {workout.day_number}</span>
-                          </div>
-                          <span className="text-gold-500 text-[10px] md:text-sm">
-                            {startingWorkout === workout.id ? "..." : "Start"}
-                          </span>
+                    <button
+                      key={workout.id}
+                      onClick={() => handleStartWorkout(workout.id)}
+                      disabled={startingWorkout === workout.id}
+                      className="w-full p-3 bg-black/30 rounded-xl flex items-center justify-between active:bg-black/50 transition-colors disabled:opacity-50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 text-xs font-medium">
+                          D{workout.day_number}
                         </div>
-                      </button>
-                      {/* Last Session Summary */}
-                      <LastSessionSummary workoutId={workout.id} workoutName={workout.name} />
-                    </div>
+                        <span className="text-gray-300 text-sm">{workout.name}</span>
+                      </div>
+                      <span className="text-gold-500 text-xs font-medium">
+                        {startingWorkout === workout.id ? "..." : "Start"}
+                      </span>
+                    </button>
                   ))}
                 </div>
               ) : (
                 <button
                   onClick={() => navigate(`/programs/${program.id}`)}
-                  className="text-gold-500 hover:text-gold-400 text-[10px] md:text-sm mt-2"
+                  className="text-gold-500 text-xs"
                 >
-                  View Program →
+                  Add workouts →
                 </button>
               )}
             </div>
@@ -182,10 +212,10 @@ export function WorkoutStartPage() {
       </div>
 
       {/* Quick Link */}
-      <div className="mt-4 md:mt-6 text-center">
+      <div className="mt-4 text-center">
         <button
           onClick={() => navigate("/programs")}
-          className="btn-secondary text-xs md:text-sm py-2 px-4"
+          className="py-3 px-6 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-sm font-medium"
         >
           Browse All Programs
         </button>

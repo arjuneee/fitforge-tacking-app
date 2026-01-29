@@ -40,59 +40,60 @@ export function QuickWeightLog() {
   };
 
   return (
-    <div className="glass-card rounded-2xl md:rounded-3xl p-4 md:p-6 glow-border">
-      <div className="flex items-center justify-between mb-3 md:mb-4">
-        <h2 className="text-base md:text-lg font-semibold text-white flex items-center gap-2">
-          <span className="text-xl">⚖️</span>
-          <span className="hidden md:inline">Quick Log Weight</span>
-          <span className="md:hidden">Log Weight</span>
-        </h2>
+    <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+      <div className="flex items-center justify-between p-4 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+            <span className="text-lg">⚖️</span>
+          </div>
+          <div>
+            <p className="text-white font-semibold text-sm">Log Weight</p>
+            <p className="text-gray-500 text-xs">Quick daily entry</p>
+          </div>
+        </div>
         <button
           onClick={() => navigate("/weight-log")}
-          className="text-xs md:text-sm text-gold-500 active:text-gold-400 transition-colors"
+          className="text-gold-500 text-xs font-medium"
         >
-          History →
+          History
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3">
+      <form onSubmit={handleSubmit} className="p-4">
         {error && (
-          <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs md:text-sm animate-slide-up">
+          <div className="mb-3 p-2 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="p-2 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-xs md:text-sm animate-slide-up">
-            ✓ Weight logged!
+          <div className="mb-3 p-2 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-xs">
+            ✓ Weight logged successfully!
           </div>
         )}
 
-        <div className="flex gap-2">
-          <div className="relative w-[30%] min-w-[80px]">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
             <input
               type="number"
               step="0.1"
               min="0"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
-              placeholder="75.0"
-              className="input-field w-full pr-8 text-sm"
+              placeholder="Enter weight"
+              className="w-full h-12 px-4 pr-12 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500/50 transition-colors"
               required
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-[10px] md:text-xs">kg</span>
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">kg</span>
           </div>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary w-[70%] text-xs md:text-sm font-semibold"
+            className="h-12 px-6 bg-gradient-to-r from-gold-600 to-gold-500 text-black font-semibold text-sm rounded-xl disabled:opacity-50 active:scale-95 transition-transform"
           >
-            {isSubmitting ? "..." : "Log Today"}
+            {isSubmitting ? "..." : "Log"}
           </button>
         </div>
-        <p className="text-[10px] md:text-xs text-gray-500">
-          Logs as morning weight. <span className="hidden md:inline">Edit details in history.</span>
-        </p>
       </form>
     </div>
   );

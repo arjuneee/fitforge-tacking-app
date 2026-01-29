@@ -603,6 +603,11 @@ export const setsApi = {
     return data;
   },
 
+  getExerciseHistory: async (exerciseId: string, days: number = 30) => {
+    const { data } = await api.get(`/sets/exercise/${exerciseId}/history?days=${days}`);
+    return data;
+  },
+
   getBySession: async (sessionId: string) => {
     const { data } = await api.get(`/sets/session/${sessionId}`);
     return data;

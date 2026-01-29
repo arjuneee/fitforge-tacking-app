@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { PageLayout } from "../components/PageLayout";
 import { VolumePerMuscleGroupChart } from "../components/VolumePerMuscleGroupChart";
 import { StrengthProgressionChart } from "../components/StrengthProgressionChart";
@@ -6,86 +7,163 @@ import { WeightTrendChart } from "../components/WeightTrendChart";
 import { BMRTDEECalculator } from "../components/BMRTDEECalculator";
 import { RecentExercises } from "../components/RecentExercises";
 
+type TabType = "overview" | "strength" | "body" | "calories";
+
 export function AnalyticsPage() {
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
+
+  const tabs: { id: TabType; label: string; icon: string }[] = [
+    { id: "overview", label: "Overview", icon: "📊" },
+    { id: "strength", label: "Strength", icon: "💪" },
+    { id: "body", label: "Body", icon: "⚖️" },
+    { id: "calories", label: "Calories", icon: "🔥" },
+  ];
+
   return (
-    <PageLayout title="Analytics" showBackButton={true}>
-      <div className="space-y-4 md:space-y-8">
-        {/* Page Intro */}
-        <div className="text-center mb-2">
-          <p className="text-gray-400 text-xs md:text-sm">
-            Track your fitness journey with detailed insights
-          </p>
-        </div>
+    <PageLayout title="Analytics" showBackButton>
+      {/* Tabs */}
+      <div className="bg-white/5 rounded-2xl p-1.5 mb-4 flex gap-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
+              activeTab === tab.id
+                ? "bg-gold-500 text-black"
+                : "text-gray-400"
+            }`}
+          >
+            <span className="mr-1">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Quick Stats Summary */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="glass-card rounded-lg p-3 text-center">
-            <span className="text-lg">📊</span>
-            <p className="text-[10px] text-gray-400 mt-1">Volume</p>
-          </div>
-          <div className="glass-card rounded-lg p-3 text-center">
-            <span className="text-lg">💪</span>
-            <p className="text-[10px] text-gray-400 mt-1">Strength</p>
-          </div>
-          <div className="glass-card rounded-lg p-3 text-center">
-            <span className="text-lg">📈</span>
-            <p className="text-[10px] text-gray-400 mt-1">Progress</p>
-          </div>
-        </div>
+      {/* Tab Content */}
+      <div className="space-y-4">
+        {activeTab === "overview" && (
+          <>
+            {/* Consistency Heatmap */}
+            <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                    <span className="text-lg">🔥</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Workout Streak</p>
+                    <p className="text-gray-500 text-xs">Your consistency over time</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <WorkoutConsistencyHeatmap />
+              </div>
+            </div>
 
-        {/* Workout Consistency Heatmap */}
-        <section>
-          <h2 className="text-sm md:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <span className="text-gold-500">🔥</span>
-            Workout Consistency
-          </h2>
-          <WorkoutConsistencyHeatmap />
-        </section>
+            {/* Volume Chart */}
+            <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                    <span className="text-lg">📊</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Volume by Muscle</p>
+                    <p className="text-gray-500 text-xs">Weekly training volume</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <VolumePerMuscleGroupChart />
+              </div>
+            </div>
 
-        {/* Volume Per Muscle Group */}
-        <section>
-          <h2 className="text-sm md:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <span className="text-gold-500">💪</span>
-            Volume by Muscle
-          </h2>
-          <VolumePerMuscleGroupChart />
-        </section>
+            {/* Recent Exercises */}
+            <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                    <span className="text-lg">🏋️</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Recent Exercises</p>
+                    <p className="text-gray-500 text-xs">Your latest activity</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <RecentExercises />
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* Strength Progression */}
-        <section>
-          <h2 className="text-sm md:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <span className="text-gold-500">📈</span>
-            Strength Progress
-          </h2>
-          <StrengthProgressionChart />
-        </section>
+        {activeTab === "strength" && (
+          <>
+            {/* Strength Progression */}
+            <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold-500/20 flex items-center justify-center">
+                    <span className="text-lg">📈</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Strength Progress</p>
+                    <p className="text-gray-500 text-xs">Estimated 1RM over time</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <StrengthProgressionChart />
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* Weight Trend */}
-        <section>
-          <h2 className="text-sm md:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <span className="text-gold-500">⚖️</span>
-            Weight Trend
-          </h2>
-          <WeightTrendChart />
-        </section>
+        {activeTab === "body" && (
+          <>
+            {/* Weight Trend */}
+            <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                    <span className="text-lg">⚖️</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Weight Trend</p>
+                    <p className="text-gray-500 text-xs">Body weight over time</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <WeightTrendChart />
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* BMR/TDEE Calculator */}
-        <section>
-          <h2 className="text-sm md:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <span className="text-gold-500">🔥</span>
-            Calorie Calculator
-          </h2>
-          <BMRTDEECalculator />
-        </section>
-
-        {/* Recent Exercises */}
-        <section>
-          <h2 className="text-sm md:text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <span className="text-gold-500">🏋️</span>
-            Recent Exercises
-          </h2>
-          <RecentExercises />
-        </section>
+        {activeTab === "calories" && (
+          <>
+            {/* BMR/TDEE Calculator */}
+            <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+              <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                    <span className="text-lg">🔥</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Calorie Calculator</p>
+                    <p className="text-gray-500 text-xs">BMR & TDEE estimates</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <BMRTDEECalculator />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </PageLayout>
   );

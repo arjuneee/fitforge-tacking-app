@@ -226,13 +226,13 @@ export function VolumePerMuscleGroupChart() {
           
           <div className="flex items-center gap-3">
             {/* Chart Type Toggle */}
-            <div className="flex bg-white/5 rounded-lg p-1">
+            <div className="flex bg-white/5 rounded-lg p-1 gap-1">
               <button
                 onClick={() => setChartType("bar")}
                 className={`p-2 rounded-md transition-all ${
                   chartType === "bar"
-                    ? "bg-gold-500/20 text-gold-500"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-gold-500 text-black"
+                    : "text-gray-400"
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,8 +243,8 @@ export function VolumePerMuscleGroupChart() {
                 onClick={() => setChartType("radial")}
                 className={`p-2 rounded-md transition-all ${
                   chartType === "radial"
-                    ? "bg-gold-500/20 text-gold-500"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-gold-500 text-black"
+                    : "text-gray-400"
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

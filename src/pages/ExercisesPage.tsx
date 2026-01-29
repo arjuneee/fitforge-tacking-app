@@ -109,25 +109,25 @@ export function ExercisesPage() {
   return (
     <PageLayout title="Exercises" showBackButton>
       {/* View Mode Toggle & Filters */}
-      <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 mb-3 md:mb-6">
+      <div className="bg-white/5 rounded-2xl border border-white/5 p-4 mb-4">
         {/* View Mode Toggle */}
-        <div className="flex bg-white/5 rounded-lg p-0.5 mb-3 md:mb-4">
+        <div className="bg-white/5 rounded-2xl p-1.5 mb-4 flex gap-1">
           <button
             onClick={() => setViewMode("recent")}
-            className={`flex-1 px-3 py-1.5 md:py-2 rounded-md transition-all text-[10px] md:text-sm ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
               viewMode === "recent"
-                ? "bg-gold-500/20 text-gold-500"
-                : "text-gray-400 hover:text-white"
+                ? "bg-gold-500 text-black"
+                : "text-gray-400"
             }`}
           >
             Recent
           </button>
           <button
             onClick={() => setViewMode("all")}
-            className={`flex-1 px-3 py-1.5 md:py-2 rounded-md transition-all text-[10px] md:text-sm ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
               viewMode === "all"
-                ? "bg-gold-500/20 text-gold-500"
-                : "text-gray-400 hover:text-white"
+                ? "bg-gold-500 text-black"
+                : "text-gray-400"
             }`}
           >
             All
@@ -135,23 +135,24 @@ export function ExercisesPage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="grid grid-cols-2 gap-2 md:gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-[10px] md:text-sm text-gray-300 mb-1.5">Search</label>
+            <label className="block text-xs text-gray-400 mb-2">Search</label>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
-              className="input-field text-xs md:text-base"
+              className="w-full h-11 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500/50"
             />
           </div>
           <div>
-            <label className="block text-[10px] md:text-sm text-gray-300 mb-1.5">Muscle Group</label>
+            <label className="block text-xs text-gray-400 mb-2">Muscle Group</label>
             <select
               value={selectedMuscleGroup}
               onChange={(e) => setSelectedMuscleGroup(e.target.value)}
-              className="input-field text-xs md:text-base"
+              className="w-full h-11 px-4 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-gold-500/50 appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
             >
               <option value="">All</option>
               {muscleGroups.map((mg) => (
@@ -165,108 +166,105 @@ export function ExercisesPage() {
       </div>
 
       {/* Exercises List */}
-      <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6">
-        <div className="flex items-center justify-between mb-3 md:mb-6">
-          <h2 className="text-xs md:text-xl font-semibold text-white">
-            {viewMode === "recent" ? "Recent" : "All"} 
-            <span className="text-gray-400 text-[10px] md:text-base font-normal ml-1.5">
+      <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+        <div className="p-4 border-b border-white/5">
+          <h2 className="text-white font-semibold text-sm">
+            {viewMode === "recent" ? "Recent Exercises" : "All Exercises"} 
+            <span className="text-gray-500 font-normal ml-2">
               ({filteredExercises.length})
             </span>
           </h2>
         </div>
 
-        {filteredExercises.length === 0 ? (
-          <div className="text-center py-8 md:py-12">
-            <p className="text-gray-400 text-xs md:text-sm mb-1.5">
-              {viewMode === "recent" 
-                ? "No recent exercises found" 
-                : "No exercises found"}
-            </p>
-            <p className="text-[10px] md:text-xs text-gray-500">
-              {viewMode === "recent"
-                ? "Start logging workouts to see exercises here"
-                : "Try adjusting your search or filters"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2 md:space-y-3">
-            {viewMode === "recent" ? (
-              exercises.filter(ex => {
-                const matchesSearch = !search || ex.exercise.name.toLowerCase().includes(search.toLowerCase());
-                const matchesMuscleGroup = !selectedMuscleGroup || ex.exercise.muscle_group?.id === selectedMuscleGroup;
-                return matchesSearch && matchesMuscleGroup;
-              }).map((item) => {
-                const exercise = item.exercise;
-                return (
-                  <button
-                    key={item.exercise_id}
-                    onClick={() => navigate(`/exercises/${item.exercise_id}/history`)}
-                    className="w-full p-3 md:p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg md:rounded-xl transition-all text-left group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <h3 className="font-semibold text-white group-hover:text-gold-400 transition-colors text-xs md:text-base truncate">
-                            {exercise.name}
-                          </h3>
-                          {exercise.is_compound && (
-                            <span className="flex-shrink-0 px-1.5 py-0.5 bg-gold-500/20 text-gold-400 rounded text-[8px] md:text-xs font-medium">
-                              C
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex gap-2 text-[8px] md:text-xs text-gray-400">
-                          <span>{exercise.muscle_group?.name || "Unknown"}</span>
-                          <span>•</span>
-                          <span>{item.set_count} sets</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 ml-2">
-                        <div className="text-right">
-                          <p className="text-[10px] md:text-sm text-gray-400">{formatDate(item.last_session_date)}</p>
-                        </div>
-                        <svg className="w-4 h-4 text-gray-500 group-hover:text-gold-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })
-            ) : (
-              (filteredExercises as Exercise[]).map((exercise: Exercise) => (
+        <div className="divide-y divide-white/5">
+          {filteredExercises.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-3">
+                <span className="text-xl">💪</span>
+              </div>
+              <p className="text-gray-400 text-sm mb-1">
+                {viewMode === "recent" 
+                  ? "No recent exercises found" 
+                  : "No exercises found"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {viewMode === "recent"
+                  ? "Start logging workouts to see exercises here"
+                  : "Try adjusting your search or filters"}
+              </p>
+            </div>
+          ) : viewMode === "recent" ? (
+            exercises.filter(ex => {
+              const matchesSearch = !search || ex.exercise.name.toLowerCase().includes(search.toLowerCase());
+              const matchesMuscleGroup = !selectedMuscleGroup || ex.exercise.muscle_group?.id === selectedMuscleGroup;
+              return matchesSearch && matchesMuscleGroup;
+            }).map((item) => {
+              const exercise = item.exercise;
+              return (
                 <button
-                  key={exercise.id}
-                  onClick={() => navigate(`/exercises/${exercise.id}/history`)}
-                  className="w-full p-3 md:p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-500/30 rounded-lg md:rounded-xl transition-all text-left group"
+                  key={item.exercise_id}
+                  onClick={() => navigate(`/exercises/${item.exercise_id}/history`)}
+                  className="w-full p-4 flex items-center gap-4 active:bg-white/5 transition-colors text-left"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <h3 className="font-semibold text-white group-hover:text-gold-400 transition-colors text-xs md:text-base truncate">
-                          {exercise.name}
-                        </h3>
-                        {exercise.is_compound && (
-                          <span className="flex-shrink-0 px-1.5 py-0.5 bg-gold-500/20 text-gold-400 rounded text-[8px] md:text-xs font-medium">
-                            C
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2 text-[8px] md:text-xs text-gray-400">
-                        <span>{exercise.muscle_group?.name || "Unknown"}</span>
-                        <span>•</span>
-                        <span className="capitalize">{exercise.equipment}</span>
-                      </div>
+                  <div className="w-11 h-11 rounded-xl bg-gold-500/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">💪</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-white font-medium text-sm truncate">{exercise.name}</p>
+                      {exercise.is_compound && (
+                        <span className="px-1.5 py-0.5 bg-gold-500/20 text-gold-400 rounded text-[10px] font-medium flex-shrink-0">
+                          C
+                        </span>
+                      )}
                     </div>
-                    <svg className="w-4 h-4 text-gray-500 group-hover:text-gold-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex gap-2 text-xs text-gray-500">
+                      <span>{exercise.muscle_group?.name || "Unknown"}</span>
+                      <span>•</span>
+                      <span>{item.set_count} sets</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">{formatDate(item.last_session_date)}</span>
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
                 </button>
-              ))
-            )}
-          </div>
-        )}
+              );
+            })
+          ) : (
+            (filteredExercises as Exercise[]).map((exercise: Exercise) => (
+              <button
+                key={exercise.id}
+                onClick={() => navigate(`/exercises/${exercise.id}/history`)}
+                className="w-full p-4 flex items-center gap-4 active:bg-white/5 transition-colors text-left"
+              >
+                <div className="w-11 h-11 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">🏋️</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-white font-medium text-sm truncate">{exercise.name}</p>
+                    {exercise.is_compound && (
+                      <span className="px-1.5 py-0.5 bg-gold-500/20 text-gold-400 rounded text-[10px] font-medium flex-shrink-0">
+                        C
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2 text-xs text-gray-500">
+                    <span>{exercise.muscle_group?.name || "Unknown"}</span>
+                    <span>•</span>
+                    <span className="capitalize">{exercise.equipment}</span>
+                  </div>
+                </div>
+                <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ))
+          )}
+        </div>
       </div>
     </PageLayout>
   );

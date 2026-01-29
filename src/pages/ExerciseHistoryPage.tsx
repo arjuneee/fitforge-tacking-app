@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { analyticsApi, exercisesApi, type Exercise } from "../services/api";
+import { analyticsApi, exercisesApi, setsApi, type Exercise } from "../services/api";
 import { PageLayout } from "../components/PageLayout";
 
 interface OneRepMaxData {
@@ -12,20 +12,53 @@ interface OneRepMaxData {
   trend: "up" | "down" | "same" | "new" | null;
 }
 
+interface SetData {
+  set_number: number;
+  weight_kg: number;
+  reps: number;
+  rpe: number | null;
+  is_warmup: boolean;
+  is_failure: boolean;
+  is_dropset: boolean;
+}
+
+interface SessionData {
+  date: string;
+  sets: SetData[];
+  working_sets: number;
+  total_volume: number;
+  max_weight: number;
+  max_reps: number;
+}
+
+interface ExerciseHistory {
+  exercise_id: string;
+  period_days: number;
+  total_sessions: number;
+  sessions: SessionData[];
+  best_volume: number;
+  best_weight: number;
+}
+
+type TabType = "history" | "stats";
+
 export function ExerciseHistoryPage() {
   const { exerciseId } = useParams<{ exerciseId: string }>();
   const navigate = useNavigate();
   
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [oneRepMax, setOneRepMax] = useState<OneRepMaxData | null>(null);
+  const [history, setHistory] = useState<ExerciseHistory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>("history");
+  const [historyDays, setHistoryDays] = useState(30);
 
   useEffect(() => {
     if (exerciseId) {
       loadData();
     }
-  }, [exerciseId]);
+  }, [exerciseId, historyDays]);
 
   const loadData = async () => {
     try {
@@ -43,8 +76,12 @@ export function ExerciseHistoryPage() {
       setExercise(foundExercise);
       
       if (exerciseId) {
-        const oneRepMaxData = await analyticsApi.getOneRepMax(exerciseId);
+        const [oneRepMaxData, historyData] = await Promise.all([
+          analyticsApi.getOneRepMax(exerciseId),
+          setsApi.getExerciseHistory(exerciseId, historyDays),
+        ]);
         setOneRepMax(oneRepMaxData);
+        setHistory(historyData);
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || "Failed to load exercise data");
@@ -55,54 +92,28 @@ export function ExerciseHistoryPage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    const today = new Date();
+    const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString("en-US", { 
+      weekday: "short",
+      month: "short", 
+      day: "numeric"
+    });
+  };
+
+  const formatFullDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", { 
+      weekday: "short",
       month: "short", 
       day: "numeric",
       year: "numeric"
     });
-  };
-
-  const getTrendIcon = (trend: string | null) => {
-    switch (trend) {
-      case "up":
-        return (
-          <div className="flex items-center gap-1 text-green-400">
-            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            <span className="text-[10px] md:text-sm font-medium">Up</span>
-          </div>
-        );
-      case "down":
-        return (
-          <div className="flex items-center gap-1 text-red-400">
-            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-            </svg>
-            <span className="text-[10px] md:text-sm font-medium">Down</span>
-          </div>
-        );
-      case "new":
-        return (
-          <div className="flex items-center gap-1 text-gold-400">
-            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-            </svg>
-            <span className="text-[10px] md:text-sm font-medium">New PR!</span>
-          </div>
-        );
-      case "same":
-        return (
-          <div className="flex items-center gap-1 text-gray-400">
-            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
-            </svg>
-            <span className="text-[10px] md:text-sm font-medium">Same</span>
-          </div>
-        );
-      default:
-        return null;
-    }
   };
 
   if (loading) {
@@ -120,7 +131,7 @@ export function ExerciseHistoryPage() {
       <PageLayout title="Exercise History" showBackButton>
         <div className="text-center py-20">
           <p className="text-red-400 text-sm mb-4">{error || "Exercise not found"}</p>
-          <button onClick={() => navigate(-1)} className="btn-primary text-sm">
+          <button onClick={() => navigate(-1)} className="text-gold-500 text-sm">
             Go Back
           </button>
         </div>
@@ -131,139 +142,247 @@ export function ExerciseHistoryPage() {
   return (
     <PageLayout title={exercise.name} showBackButton>
       {/* Exercise Info */}
-      <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6 mb-3 md:mb-6">
-        <div className="flex flex-wrap gap-2 md:gap-4 text-[10px] md:text-sm text-gray-400">
-          <span>{exercise.muscle_group?.name}</span>
-          <span>•</span>
-          <span className="capitalize">{exercise.equipment}</span>
+      <div className="bg-white/5 rounded-2xl border border-white/5 p-4 mb-4">
+        <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+          <span className="px-2 py-1 bg-white/5 rounded-lg">{exercise.muscle_group?.name}</span>
+          <span className="px-2 py-1 bg-white/5 rounded-lg capitalize">{exercise.equipment}</span>
           {exercise.is_compound && (
-            <>
-              <span>•</span>
-              <span className="text-gold-500">Compound</span>
-            </>
+            <span className="px-2 py-1 bg-gold-500/20 text-gold-500 rounded-lg">Compound</span>
           )}
         </div>
       </div>
 
-      {/* 1RM Display */}
-      {oneRepMax && (
-        <div className="space-y-3 md:space-y-6">
-          {/* Current 1RM Card */}
-          <div className="relative overflow-hidden rounded-xl md:rounded-2xl group">
-            <div className="absolute inset-0 bg-gradient-to-r from-gold-500/20 via-cyan-500/20 to-purple-500/20 opacity-50 blur-xl transition-opacity duration-500" />
-            <div className="relative glass-card rounded-xl md:rounded-2xl p-4 md:p-6 m-[1px]">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h2 className="text-xs md:text-xl font-semibold text-white">Current 1RM</h2>
-                {oneRepMax.trend && getTrendIcon(oneRepMax.trend)}
-              </div>
-              
-              {oneRepMax.current_1rm ? (
-                <div className="flex items-baseline gap-2 md:gap-3">
-                  <span className="text-3xl md:text-5xl font-bold text-gold-400">
-                    {oneRepMax.current_1rm.toFixed(1)}
-                  </span>
-                  <span className="text-lg md:text-2xl text-gray-400">kg</span>
-                </div>
-              ) : (
-                <p className="text-gray-400 text-xs md:text-base">No recent data</p>
-              )}
+      {/* Tabs */}
+      <div className="bg-white/5 rounded-2xl p-1.5 mb-4 flex gap-1">
+        <button
+          onClick={() => setActiveTab("history")}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
+            activeTab === "history" ? "bg-gold-500 text-black" : "text-gray-400"
+          }`}
+        >
+          📋 Workout History
+        </button>
+        <button
+          onClick={() => setActiveTab("stats")}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${
+            activeTab === "stats" ? "bg-gold-500 text-black" : "text-gray-400"
+          }`}
+        >
+          📊 1RM Stats
+        </button>
+      </div>
 
-              {/* Comparison */}
-              {oneRepMax.previous_1rm && oneRepMax.current_1rm && (
-                <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between text-[10px] md:text-sm">
-                    <span className="text-gray-400">Previous: {oneRepMax.previous_1rm.toFixed(1)} kg</span>
-                    {oneRepMax.trend === "up" && (
-                      <span className="text-green-400 font-medium">
-                        +{(oneRepMax.current_1rm - oneRepMax.previous_1rm).toFixed(1)} kg
-                      </span>
-                    )}
-                    {oneRepMax.trend === "down" && (
-                      <span className="text-red-400 font-medium">
-                        {(oneRepMax.current_1rm - oneRepMax.previous_1rm).toFixed(1)} kg
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+      {activeTab === "history" && (
+        <>
+          {/* Time Period Selector */}
+          <div className="flex gap-2 mb-4">
+            {[
+              { days: 7, label: "7 Days" },
+              { days: 30, label: "30 Days" },
+              { days: 90, label: "3 Months" },
+            ].map((option) => (
+              <button
+                key={option.days}
+                onClick={() => setHistoryDays(option.days)}
+                className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${
+                  historyDays === option.days
+                    ? "bg-white/10 text-white border border-white/20"
+                    : "bg-white/5 text-gray-500 border border-white/5"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
 
-          {/* PR 1RM Card */}
-          {oneRepMax.pr_1rm && (
-            <div className="relative overflow-hidden rounded-xl md:rounded-2xl group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-gold-500/20 opacity-50 blur-xl" />
-              <div className="relative glass-card rounded-xl md:rounded-2xl p-4 md:p-6 m-[1px] border border-gold-500/30">
-                <div className="flex items-center gap-2 mb-3 md:mb-4">
-                  <svg className="w-4 h-4 md:w-6 md:h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <h2 className="text-xs md:text-xl font-semibold text-white">All-Time PR</h2>
-                </div>
-                
-                <div className="flex items-baseline gap-2 md:gap-3 mb-3 md:mb-4">
-                  <span className="text-3xl md:text-5xl font-bold text-gold-400">
-                    {oneRepMax.pr_1rm.toFixed(1)}
-                  </span>
-                  <span className="text-lg md:text-2xl text-gray-400">kg</span>
-                </div>
-
-                {oneRepMax.pr_date && (
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-sm text-gray-400">
-                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>{formatDate(oneRepMax.pr_date)}</span>
-                  </div>
-                )}
-
-                {/* Difference from current */}
-                {oneRepMax.current_1rm && oneRepMax.pr_1rm && (
-                  <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/10">
-                    {oneRepMax.current_1rm >= oneRepMax.pr_1rm ? (
-                      <div className="flex items-center gap-1.5 md:gap-2 text-green-400">
-                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                        <span className="text-[10px] md:text-sm font-medium">
-                          At your PR! 💪
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="text-[10px] md:text-sm text-gray-400">
-                        <span>{(oneRepMax.pr_1rm - oneRepMax.current_1rm).toFixed(1)} kg away from PR</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+          {/* Summary Stats */}
+          {history && history.total_sessions > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                <p className="text-white font-bold text-lg">{history.total_sessions}</p>
+                <p className="text-gray-500 text-[10px]">Sessions</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                <p className="text-gold-500 font-bold text-lg">{history.best_weight}</p>
+                <p className="text-gray-500 text-[10px]">Best kg</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                <p className="text-cyan-400 font-bold text-lg">{(history.best_volume / 1000).toFixed(1)}k</p>
+                <p className="text-gray-500 text-[10px]">Best Vol</p>
               </div>
             </div>
           )}
 
-          {/* No PR Message */}
-          {!oneRepMax.pr_1rm && oneRepMax.current_1rm && (
-            <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6 text-center">
-              <p className="text-gray-400 text-xs md:text-base mb-1 md:mb-2">No PR recorded yet</p>
-              <p className="text-[10px] md:text-sm text-gray-500">
-                Your current 1RM will become your PR
-              </p>
+          {/* Session History */}
+          {history && history.sessions.length > 0 ? (
+            <div className="space-y-3">
+              {history.sessions.map((session, idx) => (
+                <div key={session.date} className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+                  {/* Session Header */}
+                  <div className="p-4 border-b border-white/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gold-500/20 flex items-center justify-center">
+                          <span className="text-sm font-bold text-gold-500">#{history.sessions.length - idx}</span>
+                        </div>
+                        <div>
+                          <p className="text-white font-medium text-sm">{formatDate(session.date)}</p>
+                          <p className="text-gray-500 text-[10px]">{formatFullDate(session.date)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-semibold text-sm">{session.max_weight} kg</p>
+                        <p className="text-gray-500 text-[10px]">{session.working_sets} working sets</p>
+                      </div>
+                    </div>
+                    
+                    {/* Quick Stats */}
+                    <div className="flex gap-3 text-[10px]">
+                      <span className="text-gray-400">Vol: {session.total_volume.toFixed(0)} kg</span>
+                      <span className="text-gray-400">Max Reps: {session.max_reps}</span>
+                    </div>
+                  </div>
+
+                  {/* Sets Table */}
+                  <div className="p-3">
+                    <div className="grid grid-cols-5 gap-2 text-[10px] text-gray-500 font-medium mb-2 px-2">
+                      <span>Set</span>
+                      <span>Weight</span>
+                      <span>Reps</span>
+                      <span>RPE</span>
+                      <span>Type</span>
+                    </div>
+                    <div className="space-y-1">
+                      {session.sets.map((set, setIdx) => (
+                        <div 
+                          key={setIdx}
+                          className={`grid grid-cols-5 gap-2 text-xs px-2 py-2 rounded-lg ${
+                            set.is_warmup 
+                              ? "bg-blue-500/10 text-blue-300" 
+                              : "bg-black/20 text-white"
+                          }`}
+                        >
+                          <span className="text-gray-400">{set.set_number}</span>
+                          <span className="font-semibold">{set.weight_kg} kg</span>
+                          <span>{set.reps}</span>
+                          <span className="text-gray-400">{set.rpe || "-"}</span>
+                          <span className="text-[10px]">
+                            {set.is_warmup && <span className="text-blue-400">Warm</span>}
+                            {set.is_failure && <span className="text-red-400">Fail</span>}
+                            {set.is_dropset && <span className="text-purple-400">Drop</span>}
+                            {!set.is_warmup && !set.is_failure && !set.is_dropset && <span className="text-gray-500">Work</span>}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4">
+                <span className="text-3xl">📋</span>
+              </div>
+              <h2 className="text-white font-semibold text-lg mb-2">No History Yet</h2>
+              <p className="text-gray-500 text-sm mb-6">Log workouts to see your history here</p>
+              <button
+                onClick={() => navigate("/workouts/start")}
+                className="py-3 px-6 bg-gradient-to-r from-gold-600 to-gold-500 text-black font-semibold text-sm rounded-xl"
+              >
+                Start Workout
+              </button>
             </div>
           )}
-        </div>
+        </>
       )}
 
-      {/* No Data Message */}
-      {oneRepMax && !oneRepMax.current_1rm && !oneRepMax.pr_1rm && (
-        <div className="glass-card rounded-xl md:rounded-2xl p-6 md:p-8 text-center">
-          <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 rounded-full bg-gray-800 flex items-center justify-center">
-            <svg className="w-6 h-6 md:w-8 md:h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+      {activeTab === "stats" && oneRepMax && (
+        <div className="space-y-4">
+          {/* Current 1RM */}
+          <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
+            <div className="p-4 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gold-500/20 flex items-center justify-center">
+                  <span className="text-lg">💪</span>
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm">Current Estimated 1RM</p>
+                  <p className="text-gray-500 text-xs">Based on recent performance</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4">
+              {oneRepMax.current_1rm ? (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-gold-400">
+                    {oneRepMax.current_1rm.toFixed(1)}
+                  </span>
+                  <span className="text-xl text-gray-400">kg</span>
+                  {oneRepMax.trend === "up" && (
+                    <span className="ml-auto text-green-400 text-sm font-medium">↑ Up</span>
+                  )}
+                  {oneRepMax.trend === "down" && (
+                    <span className="ml-auto text-red-400 text-sm font-medium">↓ Down</span>
+                  )}
+                  {oneRepMax.trend === "new" && (
+                    <span className="ml-auto text-gold-400 text-sm font-medium">⭐ New PR!</span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-sm">No recent data</p>
+              )}
+              
+              {oneRepMax.previous_1rm && (
+                <div className="mt-3 pt-3 border-t border-white/10 text-xs text-gray-400">
+                  Previous: {oneRepMax.previous_1rm.toFixed(1)} kg 
+                  {oneRepMax.previous_date && ` (${formatDate(oneRepMax.previous_date)})`}
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-gray-400 text-xs md:text-base mb-1 md:mb-2">No workout data available</p>
-          <p className="text-[10px] md:text-sm text-gray-500">
-            Log sets for this exercise to see your 1RM
-          </p>
+
+          {/* All-Time PR */}
+          {oneRepMax.pr_1rm && (
+            <div className="bg-gradient-to-br from-gold-500/10 to-gold-600/10 rounded-2xl border border-gold-500/30 overflow-hidden">
+              <div className="p-4 border-b border-gold-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold-500/30 flex items-center justify-center">
+                    <span className="text-lg">🏆</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">All-Time Personal Record</p>
+                    <p className="text-gray-400 text-xs">{formatDate(oneRepMax.pr_date)}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-gold-400">
+                    {oneRepMax.pr_1rm.toFixed(1)}
+                  </span>
+                  <span className="text-xl text-gray-400">kg</span>
+                </div>
+                
+                {oneRepMax.current_1rm && oneRepMax.pr_1rm > oneRepMax.current_1rm && (
+                  <div className="mt-3 pt-3 border-t border-gold-500/20 text-xs text-gray-400">
+                    {(oneRepMax.pr_1rm - oneRepMax.current_1rm).toFixed(1)} kg away from PR
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* No Data */}
+          {!oneRepMax.current_1rm && !oneRepMax.pr_1rm && (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h2 className="text-white font-semibold text-lg mb-2">No Stats Yet</h2>
+              <p className="text-gray-500 text-sm">Log sets to see your 1RM estimates</p>
+            </div>
+          )}
         </div>
       )}
     </PageLayout>
