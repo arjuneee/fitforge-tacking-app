@@ -120,7 +120,13 @@ export function WorkoutEditPage() {
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <button
-            onClick={() => navigate(programId ? `/programs/${programId}` : -1)}
+            onClick={() => {
+              if (programId) {
+                navigate(`/programs/${programId}`);
+              } else {
+                navigate(-1);
+              }
+            }}
             className="text-gold-500 hover:text-gold-400 mb-4 flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,7 +208,13 @@ export function WorkoutEditPage() {
             <div className="flex gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => navigate(programId ? `/programs/${programId}` : -1)}
+                onClick={() => {
+                  if (programId) {
+                    navigate(`/programs/${programId}`);
+                  } else {
+                    navigate(-1);
+                  }
+                }}
                 className="btn-secondary flex-1"
               >
                 Cancel

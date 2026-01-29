@@ -7,6 +7,7 @@ import { PreviousPerformance } from "../components/PreviousPerformance";
 import { ExerciseSelector } from "../components/ExerciseSelector";
 import { ProgressiveOverloadSuggestion } from "../components/ProgressiveOverloadSuggestion";
 import { type Exercise } from "../services/api";
+import { offlineService } from "../services/offline";
 
 interface LoggedSet extends Set {
   workout_exercise_id: string;
@@ -23,7 +24,7 @@ export function ActiveWorkoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [editingSet, setEditingSet] = useState<Set | null>(null);
-  const [skippedExercises, setSkippedExercises] = useState<Set<string>>(new Set());
+  const [skippedExercises, setSkippedExercises] = useState<globalThis.Set<string>>(new globalThis.Set<string>());
   const [restTimerActive, setRestTimerActive] = useState(false);
   const [restTimerSeconds, setRestTimerSeconds] = useState(90);
   const [isOnline, setIsOnline] = useState(navigator.onLine);

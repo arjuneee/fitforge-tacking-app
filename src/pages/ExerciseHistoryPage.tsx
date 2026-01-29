@@ -43,8 +43,10 @@ export function ExerciseHistoryPage() {
       setExercise(foundExercise);
       
       // Load 1RM data
-      const oneRepMaxData = await analyticsApi.getOneRepMax(exerciseId);
-      setOneRepMax(oneRepMaxData);
+      if (exerciseId) {
+        const oneRepMaxData = await analyticsApi.getOneRepMax(exerciseId);
+        setOneRepMax(oneRepMaxData);
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || "Failed to load exercise data");
     } finally {

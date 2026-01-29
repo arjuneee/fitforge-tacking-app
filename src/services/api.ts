@@ -2,7 +2,7 @@ import axios from "axios";
 import { supabase } from "../lib/supabase";
 import { offlineService } from "./offline";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://fitforge-tacking-backend.onrender.com";
 
 // Check if online
 const isOnline = () => navigator.onLine;
@@ -506,8 +506,12 @@ export const weightLogsApi = {
     notes?: string | null;
   }) => {
     if (!isOnline()) {
-      // Save offline
-      await offlineService.saveWeightLogOffline(logData);
+      // Save offline - convert null to undefined for notes
+      const offlineData = {
+        ...logData,
+        notes: logData.notes ?? undefined,
+      };
+      await offlineService.saveWeightLogOffline(offlineData);
       // Return mock response for immediate UI feedback
       return {
         id: `temp-${Date.now()}`,
@@ -520,9 +524,13 @@ export const weightLogsApi = {
       const { data } = await api.post("/weight-logs", logData);
       return data;
     } catch (error: any) {
-      // If network error, save offline
+      // If network error, save offline - convert null to undefined for notes
       if (error.code === "ERR_NETWORK" || !isOnline()) {
-        await offlineService.saveWeightLogOffline(logData);
+        const offlineData = {
+          ...logData,
+          notes: logData.notes ?? undefined,
+        };
+        await offlineService.saveWeightLogOffline(offlineData);
         return {
           id: `temp-${Date.now()}`,
           ...logData,

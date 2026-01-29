@@ -136,19 +136,19 @@ export const offlineService = {
 
   // Get pending sets (ready for retry)
   async getPendingSets(): Promise<PendingSet[]> {
-    const all = await db.pendingSets.where("synced").equals(false).toArray();
+    const all = await db.pendingSets.filter(set => !set.synced).toArray();
     return all.filter(item => shouldRetry(item.retryCount, item.lastRetryAt));
   },
 
   // Get pending sessions (ready for retry)
   async getPendingSessions(): Promise<PendingSession[]> {
-    const all = await db.pendingSessions.where("synced").equals(false).toArray();
+    const all = await db.pendingSessions.filter(session => !session.synced).toArray();
     return all.filter(item => shouldRetry(item.retryCount, item.lastRetryAt));
   },
 
   // Get pending weight logs (ready for retry)
   async getPendingWeightLogs(): Promise<PendingWeightLog[]> {
-    const all = await db.pendingWeightLogs.where("synced").equals(false).toArray();
+    const all = await db.pendingWeightLogs.filter(log => !log.synced).toArray();
     return all.filter(item => shouldRetry(item.retryCount, item.lastRetryAt));
   },
 
@@ -217,17 +217,17 @@ export const offlineService = {
     sessions: PendingSession[];
     weightLogs: PendingWeightLog[];
   }> {
-    const sets = await db.pendingSets.where("synced").equals(false).toArray();
-    const sessions = await db.pendingSessions.where("synced").equals(false).toArray();
-    const weightLogs = await db.pendingWeightLogs.where("synced").equals(false).toArray();
+    const sets = await db.pendingSets.filter(set => !set.synced).toArray();
+    const sessions = await db.pendingSessions.filter(session => !session.synced).toArray();
+    const weightLogs = await db.pendingWeightLogs.filter(log => !log.synced).toArray();
     return { sets, sessions, weightLogs };
   },
 
   // Clear synced items (cleanup)
   async clearSyncedItems(): Promise<void> {
-    await db.pendingSets.where("synced").equals(true).delete();
-    await db.pendingSessions.where("synced").equals(true).delete();
-    await db.pendingWeightLogs.where("synced").equals(true).delete();
+    await db.pendingSets.filter(set => set.synced).delete();
+    await db.pendingSessions.filter(session => session.synced).delete();
+    await db.pendingWeightLogs.filter(log => log.synced).delete();
   },
 };
 
